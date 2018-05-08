@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.icfolson.aem.color.picker</groupId>
+    <artifactId>aem-color-picker</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>AEM Color Picker</name>
+
+    <modules>
+        <module>aem-color-picker-ui</module>
+    </modules>
+
+    <properties>
+        <!-- versions -->
+        <package.plugin.version>0.6.0</package.plugin.version>
+
+        <!-- defaults -->
+        <package.skip>true</package.skip>
+        <aem.username>admin</aem.username>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>local</id>
+            <activation>
+                <property>
+                    <name>local</name>
+                </property>
+            </activation>
+            <properties>
+                <package.skip>false</package.skip>
+                <aem.host.author>localhost</aem.host.author>
+                <aem.host.publish>localhost</aem.host.publish>
+                <aem.port.author>4502</aem.port.author>
+                <aem.port.publish>4503</aem.port.publish>
+                <aem.username.author>admin</aem.username.author>
+                <aem.username.publish>admin</aem.username.publish>
+                <aem.password.author>admin</aem.password.author>
+                <aem.password.publish>admin</aem.password.publish>
+            </properties>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>1.3.1</version>
+                <configuration>
+                    <generateBackupPoms>false</generateBackupPoms>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
