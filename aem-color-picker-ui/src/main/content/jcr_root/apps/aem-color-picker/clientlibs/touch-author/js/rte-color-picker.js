@@ -6,6 +6,104 @@
         COLOR_PICKER_COMMAND_NAME = 'colorpicker',
         COLOR_PICKER_COMMAND_REF = COLOR_PICKER_GROUP + '#' + COLOR_PICKER_FEATURE,
 
+        Utils = (function(){
+            function getLeftDominantParent(node, rootNode){
+                var dominantParent = null,
+                    curChild = node,
+                    curParent = curChild.parentNode;
+
+                //keep checking parents if we are first child and parent isn't root node.
+                while(!curChild.previousSibling && curChild !== rootNode && curParent !== rootNode){
+                    //track dominant parent
+                    dominantParent = curParent;
+
+                    //set next parent/child
+                    curChild = curParent;
+                    curParent = curParent.parentNode;
+                }
+
+                return dominantParent;
+            }
+
+            function getRightDominantParent(node, rootNode){
+                var dominantParent = null,
+                    curChild = node,
+                    curParent = curChild.parentNode;
+
+                //keep checking parents if we are first child and parent isn't root node.
+                while(!curChild.nextSibling && curChild !== rootNode && curParent !== rootNode){
+                    //track dominant parent
+                    dominantParent = curParent;
+
+                    //set next parent/child
+                    curChild = curParent;
+                    curParent = curParent.parentNode;
+                }
+
+                return dominantParent;
+            }
+
+            function getColor(node, rootNode){
+                var color = '',
+                    curNode = node;
+
+                while('' === color && curNode !== rootNode){
+                    color = curNode.style ? curNode.style.color : '';
+                    curNode = curNode.parentNode;
+                }
+
+                return color;
+            }
+
+            function isSelection(selectionDef){
+                return selectionDef.startNode && selectionDef.endNode;
+            }
+
+            function isFullSelection(selectionDef, rootNode){
+                var fullSelection = false,
+                    leftDominantParent = null,
+                    rightDominantParent = null,
+                    leftFullSelection,
+                    rightFullSelection;
+
+                if(selectionDef.startNode && selectionDef.endNode){
+                    leftDominantParent = getLeftDominantParent(selectionDef.startNode, rootNode);
+                    rightDominantParent = getRightDominantParent(selectionDef.endNode, rootNode);
+                    leftFullSelection = selectionDef.startNode.nodeType !== 3 || selectionDef.startOffset === 0;
+                    rightFullSelection = selectionDef.endNode.nodeType !== 3 || selectionDef.endOffset === selectionDef.endNode.length;
+
+                    fullSelection = leftDominantParent !== null && rightDominantParent !== null && leftDominantParent === rightDominantParent
+                        && leftFullSelection && rightFullSelection;
+                }
+
+                return fullSelection;
+            }
+
+            function getSelectedColor(selectionDef, rootNode){
+                var color = '',
+                    startColor,
+                    endColor;
+
+                if(!isSelection(selectionDef)){
+                    color = getColor(selectionDef.startNode, rootNode);
+                } else {
+                    startColor = selectionDef.startNode ? getColor(selectionDef.startNode, rootNode) : '';
+                    endColor = selectionDef.endNode ? getColor(selectionDef.endNode, rootNode) : '';
+                    if(startColor === endColor){
+                        color = startColor;
+                    }
+                }
+
+                return color;
+            }
+
+            return {
+                isSelection: isSelection,
+                isFullSelection: isFullSelection,
+                getSelectedColor: getSelectedColor
+            };
+        })(),
+
         //define dialog
         ColorPickerDialog = new Class({
 
@@ -126,7 +224,7 @@
                     }
 
                     dialogManager.prepareShow(this.colorPickerDialog);
-                    //TODO: Add logic to determine what color should be set in dialog
+                    this.colorPickerDialog.setColor(Utils.getSelectedColor(selectionDef.selection, selectionDef.editContext.root));
                     this.savedNativeSelection = CUI.rte.Selection.saveNativeSelection(editContext);
                     dialogManager.show(this.colorPickerDialog);
                 }
@@ -141,7 +239,8 @@
             },
 
             updateState: function(selDef){
-                // must be overridden by implementing plugins
+                var selectedColor = Utils.getSelectedColor(selDef.selection, selDef.editContext.root);
+                this.colorPickerUI.setSelected('' !== selectedColor && Utils.isFullSelection(selDef.selection, selDef.editContext.root));
             },
 
             isHeadless: function(command, value){
@@ -166,6 +265,7 @@
             },
 
             execute: function(execDef){
+                //TODO: Implement coloring
                 console.log(execDef);
             }
         });
