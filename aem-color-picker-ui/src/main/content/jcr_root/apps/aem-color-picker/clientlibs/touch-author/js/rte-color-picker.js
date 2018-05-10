@@ -335,7 +335,9 @@
                 getSharedDominantParent: getSharedDominantParent,
                 stripDescendantColors: stripDescendantColors,
                 getNextRangeSibling: getNextRangeSibling,
-                getCommonAncestor: getCommonAncestor
+                getCommonAncestor: getCommonAncestor,
+                canUnwrap: canUnwrap,
+                unwrap: unwrap
             };
         })(),
 
@@ -520,9 +522,13 @@
                     if(curNode.style){
                         nodeToColor = curNode;
                     }
+                    curNode = curNode.parentNode;
                 }
 
                 this.colorNode(nodeToColor, execDef.value);
+                if(Utils.canUnwrap(nodeToColor)){
+                    Utils.unwrap(nodeToColor);
+                }
             },
 
             colorFullSelection: function(execDef){
