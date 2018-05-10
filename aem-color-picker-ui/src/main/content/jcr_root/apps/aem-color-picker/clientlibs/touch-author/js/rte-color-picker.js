@@ -537,6 +537,9 @@
                 );
                 Utils.stripDescendantColors(sharedDominantParent);
                 this.colorNode(sharedDominantParent, execDef.value);
+                if(Utils.canUnwrap(sharedDominantParent)){
+                    Utils.unwrap(sharedDominantParent);
+                }
             },
 
             colorRangeSelection: function(execDef){
