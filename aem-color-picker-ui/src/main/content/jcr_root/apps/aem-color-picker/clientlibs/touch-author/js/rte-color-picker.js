@@ -605,6 +605,9 @@
                     } else {
                         Utils.stripDescendantColors(curNode);
                         this.colorNode(curNode, execDef.value);
+                        if(Utils.canUnwrap(curNode)){
+                            Utils.unwrap(curNode);
+                        }
                     }
 
                     //set next node
@@ -634,7 +637,7 @@
                     coloredTextNode,
                     endTextNode;
 
-                if(node && node.nodeType === 3){
+                if(node && node.nodeType === 3 && color !== ''){
                     //split out text
                     startTextNode = startIndex > 0
                         ? document.createTextNode(node.textContent.substring(0, startIndex))
