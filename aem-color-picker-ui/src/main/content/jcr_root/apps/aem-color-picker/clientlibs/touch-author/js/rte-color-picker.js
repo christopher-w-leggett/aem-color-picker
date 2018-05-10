@@ -8,47 +8,75 @@
 
         Utils = (function(){
             /**
-             * Gets the left most dominant parent node from the provided node or null if one doesn't exist.  A
-             * left most dominant parent is one that considers the provided node as the first child conceptually.
+             * Gets the dominant parent nodes to the left of the provided node.  A left most dominant parent is one that
+             * considers the provided node as the first child conceptually.
              */
-            function getLeftDominantParent(node, rootNode){
-                var dominantParent = null,
+            function getLeftDominantParents(node, rootNode){
+                var dominantParents = [],
                     curChild = node,
                     curParent = curChild.parentNode;
 
                 //keep checking parents if we are first child and parent isn't root node.
                 while(!curChild.previousSibling && curChild !== rootNode && curParent !== rootNode){
                     //track dominant parent
-                    dominantParent = curParent;
+                    dominantParents.push(curParent);
 
                     //set next parent/child
                     curChild = curParent;
                     curParent = curParent.parentNode;
                 }
 
-                return dominantParent;
+                return dominantParents;
             }
 
             /**
-             * Gets the right most dominant parent node from the provided node or null if one doesn't exist.  A
-             * right most dominant parent is one that considers the provided node as the last child conceptually.
+             * Gets the dominant parent nodes to the right of the provided node.  A right most dominant parent is one that
+             * considers the provided node as the last child conceptually.
              */
-            function getRightDominantParent(node, rootNode){
-                var dominantParent = null,
+            function getRightDominantParents(node, rootNode){
+                var dominantParents = [],
                     curChild = node,
                     curParent = curChild.parentNode;
 
                 //keep checking parents if we are first child and parent isn't root node.
                 while(!curChild.nextSibling && curChild !== rootNode && curParent !== rootNode){
                     //track dominant parent
-                    dominantParent = curParent;
+                    dominantParents.push(curParent);
 
                     //set next parent/child
                     curChild = curParent;
                     curParent = curParent.parentNode;
                 }
 
-                return dominantParent;
+                return dominantParents;
+            }
+
+            /**
+             * Gets the dominant parent that is shared between the startNode and endNode.  The dominant parent will
+             * consider the startNode as the first child and the endNode as the last child conceptually.
+             */
+            function getSharedDominantParent(startNode, endNode, rootNode){
+                var leftDominantParents = getLeftDominantParents(startNode, rootNode),
+                    rightDominantParents = getRightDominantParents(endNode, rootNode),
+                    sharedDominantParent = null,
+                    leftIndex = leftDominantParents.length - 1,
+                    rightIndex = rightDominantParents.length - 1;
+
+                while(sharedDominantParent === null && leftIndex > -1){
+                    if(leftDominantParents[leftIndex] === rightDominantParents[rightIndex]){
+                        sharedDominantParent = leftDominantParents[leftIndex];
+                    }
+
+                    //move to next set of checks
+                    if(rightIndex > 0){
+                        rightIndex--;
+                    } else {
+                        leftIndex--;
+                        rightIndex = rightDominantParents.length - 1;
+                    }
+                }
+
+                return sharedDominantParent;
             }
 
             /**
@@ -96,19 +124,18 @@
              */
             function isFullSelection(selectionDef, rootNode){
                 var fullSelection = false,
-                    leftDominantParent = null,
-                    rightDominantParent = null,
+                    sharedDominantParent,
                     leftFullSelection,
                     rightFullSelection;
 
                 if(selectionDef.startNode && selectionDef.endNode){
-                    leftDominantParent = getLeftDominantParent(selectionDef.startNode, rootNode);
-                    rightDominantParent = getRightDominantParent(selectionDef.endNode, rootNode);
+                    sharedDominantParent = getSharedDominantParent(
+                        selectionDef.startNode, selectionDef.endNode, rootNode
+                    );
                     leftFullSelection = selectionDef.startNode.nodeType !== 3 || selectionDef.startOffset === 0;
                     rightFullSelection = selectionDef.endNode.nodeType !== 3 || selectionDef.endOffset === selectionDef.endNode.length;
 
-                    fullSelection = leftDominantParent !== null && rightDominantParent !== null && leftDominantParent === rightDominantParent
-                        && leftFullSelection && rightFullSelection;
+                    fullSelection = sharedDominantParent !== null && leftFullSelection && rightFullSelection;
                 }
 
                 return fullSelection;
@@ -138,11 +165,79 @@
                 return color;
             }
 
+            /**
+             * Unwraps the provided node by moving all children to its parent and finally removing the provided node.
+             */
+            function unwrap(node){
+                var parentNode = node.parentNode;
+
+                while(node.firstChild){
+                    parentNode.insertBefore(node.firstChild, node);
+                }
+
+                parentNode.removeChild(node);
+            }
+
+            /**
+             * Determines if provided node is a span tag.
+             */
+            function isSpan(node){
+                return node.tagName && node.tagName.toLowerCase() === 'span';
+            }
+
+            /**
+             * Determines if the provided nodes attribute list is empty.
+             */
+            function hasNoAttributes(node){
+                return !node.attributes || node.attributes.length === 0;
+            }
+
+            /**
+             * Determines if the provided node contains only a single style attribute with no value.
+             */
+            function hasOnlyEmptyStyleAttribute(node){
+                return node.attributes
+                    && node.attributes.length === 1
+                    && node.attributes[0].nodeName === 'style'
+                    && node.attributes[0].value === '';
+            }
+
+            /**
+             * Determines if the node can be unwrapped.  This is true if the node is a coloring node.
+             */
+            function canUnwrap(node){
+                return isSpan(node) && (hasNoAttributes(node) || hasOnlyEmptyStyleAttribute(node));
+            }
+
+            /**
+             * Strips all coloring markup for descendant nodes.
+             */
+            function stripDescendantColors(node){
+                var curChild = node.firstChild,
+                    markerNode;
+
+                while(curChild){
+                    if(curChild.style){
+                        curChild.style.color = '';
+                    }
+
+                    if(canUnwrap(curChild)){
+                        markerNode = curChild.previousSibling || node;
+                        unwrap(curChild);
+                        curChild = markerNode === node ? markerNode.firstChild : markerNode.nextSibling;
+                    }else{
+                        curChild = curChild.nextSibling;
+                    }
+                }
+            }
+
             return {
                 isRangeSelection: isRangeSelection,
                 isFullSelection: isFullSelection,
                 getSelectedColor: getSelectedColor,
-                getClosestColoredNode: getClosestColoredNode
+                getClosestColoredNode: getClosestColoredNode,
+                getSharedDominantParent: getSharedDominantParent,
+                stripDescendantColors: stripDescendantColors
             };
         })(),
 
@@ -282,7 +377,9 @@
 
             updateState: function(selDef){
                 var selectedColor = Utils.getSelectedColor(selDef.selection, selDef.editContext.root);
-                this.colorPickerUI.setSelected('' !== selectedColor && Utils.isFullSelection(selDef.selection, selDef.editContext.root));
+                this.colorPickerUI.setSelected(
+                    '' !== selectedColor && Utils.isFullSelection(selDef.selection, selDef.editContext.root)
+                );
             },
 
             isHeadless: function(command, value){
@@ -324,12 +421,27 @@
                     }
                 }
 
-                if(nodeToColor !== null){
-                    nodeToColor.style.color = execDef.value || '';
-                }
+                this.colorNode(nodeToColor, execDef.value);
             },
 
             colorRangeSelection: function(execDef){
+                var sharedDominantParent;
+
+                if(Utils.isFullSelection(execDef.selection, execDef.editContext.root)){
+                    sharedDominantParent = Utils.getSharedDominantParent(
+                        execDef.selection.startNode, execDef.selection.endNode, execDef.editContext.root
+                    );
+                    Utils.stripDescendantColors(sharedDominantParent);
+                    this.colorNode(sharedDominantParent, execDef.value);
+                }else{
+
+                }
+            },
+
+            colorNode: function(node, color){
+                if(node && node.style){
+                    node.style.color = color || '';
+                }
             }
         });
 
