@@ -147,7 +147,7 @@
              * If the selection is a range, it will find the color of the closest parent at the start of the range and
              * at the end of the range.  If the start and end colors match, that color will be returned.
              */
-            function getSelectedColor(selectionDef, rootNode){
+            function getSelectionColor(selectionDef, rootNode){
                 var color = '',
                     startColor,
                     endColor;
@@ -163,6 +163,35 @@
                 }
 
                 return color;
+            }
+
+            /**
+             * Gets the computed color of the current selection.
+             * If the selection isn't a range, it will find the computed color of the start node.
+             * If the selection is a range, it will find the computed color of the start node and end node.  If the
+             * start and end colors match, that color will be returned.
+             */
+            function getComputedColor(selectionDef){
+                var color = '',
+                    startNode = selectionDef.startNode,
+                    endNode = selectionDef.endNode,
+                    startColor,
+                    endColor;
+
+                //get element from start/end nodes
+                while(startNode && startNode.nodeType === 3){
+                    startNode = startNode.parentNode;
+                }
+                while(endNode && endNode.nodeType === 3){
+                    endNode = endNode.parentNode;
+                }
+
+                //get computed colors
+                startColor = startNode ? window.getComputedStyle(startNode, null).getPropertyValue('color') : '';
+                endColor = endNode ? window.getComputedStyle(endNode, null).getPropertyValue('color') : '';
+
+                //return proper computed color
+                return !endNode || startColor === endColor ? startColor : '';
             }
 
             /**
@@ -254,7 +283,8 @@
                 getRightDominantParents: getRightDominantParents,
                 isRangeSelection: isRangeSelection,
                 isFullSelection: isFullSelection,
-                getSelectedColor: getSelectedColor,
+                getSelectionColor: getSelectionColor,
+                getComputedColor: getComputedColor,
                 getClosestColoredNode: getClosestColoredNode,
                 getSharedDominantParent: getSharedDominantParent,
                 stripDescendantColors: stripDescendantColors,
@@ -383,7 +413,7 @@
 
                     dialogManager.prepareShow(this.colorPickerDialog);
                     this.colorPickerDialog.setColor(
-                        selectionDef ? Utils.getSelectedColor(selectionDef.selection, selectionDef.editContext.root) : ''
+                        selectionDef ? Utils.getComputedColor(selectionDef.selection) : ''
                     );
                     this.savedNativeSelection = CUI.rte.Selection.saveNativeSelection(editContext);
                     dialogManager.show(this.colorPickerDialog);
@@ -399,7 +429,7 @@
             },
 
             updateState: function(selDef){
-                var selectedColor = Utils.getSelectedColor(selDef.selection, selDef.editContext.root);
+                var selectedColor = Utils.getSelectionColor(selDef.selection, selDef.editContext.root);
                 this.colorPickerUI.setSelected(
                     '' !== selectedColor && Utils.isFullSelection(selDef.selection, selDef.editContext.root)
                 );
@@ -427,7 +457,6 @@
             },
 
             execute: function(execDef){
-                console.log(execDef);
                 if(!Utils.isRangeSelection(execDef.selection)){
                     this.colorCursorSelection(execDef);
                 } else if(Utils.isFullSelection(execDef.selection, execDef.editContext.root)){
