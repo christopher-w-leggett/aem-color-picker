@@ -231,13 +231,34 @@
                 }
             }
 
+            function getNextRangeSibling(node, endTree){
+                var curNode = node,
+                    nextSibling = curNode.nextSibling;
+
+                //move to next conceptual sibling which could be our parents sibling.
+                while(!nextSibling && !endTree.includes(curNode)){
+                    curNode = curNode.parentNode;
+                    nextSibling = curNode.nextSibling;
+                }
+
+                //if next sibling represents the end tree, move down
+                while(endTree.includes(nextSibling)){
+                    nextSibling = nextSibling.firstChild;
+                }
+
+                return nextSibling;
+            }
+
             return {
+                getLeftDominantParents: getLeftDominantParents,
+                getRightDominantParents: getRightDominantParents,
                 isRangeSelection: isRangeSelection,
                 isFullSelection: isFullSelection,
                 getSelectedColor: getSelectedColor,
                 getClosestColoredNode: getClosestColoredNode,
                 getSharedDominantParent: getSharedDominantParent,
-                stripDescendantColors: stripDescendantColors
+                stripDescendantColors: stripDescendantColors,
+                getNextRangeSibling: getNextRangeSibling
             };
         })(),
 
@@ -361,7 +382,9 @@
                     }
 
                     dialogManager.prepareShow(this.colorPickerDialog);
-                    this.colorPickerDialog.setColor(Utils.getSelectedColor(selectionDef.selection, selectionDef.editContext.root));
+                    this.colorPickerDialog.setColor(
+                        selectionDef ? Utils.getSelectedColor(selectionDef.selection, selectionDef.editContext.root) : ''
+                    );
                     this.savedNativeSelection = CUI.rte.Selection.saveNativeSelection(editContext);
                     dialogManager.show(this.colorPickerDialog);
                 }
@@ -407,6 +430,8 @@
                 console.log(execDef);
                 if(!Utils.isRangeSelection(execDef.selection)){
                     this.colorCursorSelection(execDef);
+                } else if(Utils.isFullSelection(execDef.selection, execDef.editContext.root)){
+                    this.colorFullSelection(execDef);
                 } else {
                     this.colorRangeSelection(execDef);
                 }
@@ -424,23 +449,123 @@
                 this.colorNode(nodeToColor, execDef.value);
             },
 
+            colorFullSelection: function(execDef){
+                var sharedDominantParent = Utils.getSharedDominantParent(
+                    execDef.selection.startNode, execDef.selection.endNode, execDef.editContext.root
+                );
+                Utils.stripDescendantColors(sharedDominantParent);
+                this.colorNode(sharedDominantParent, execDef.value);
+            },
+
             colorRangeSelection: function(execDef){
-                var sharedDominantParent;
+                var actingRoot = execDef.nodeList.commonAncestor,
+                    startDominantParents,
+                    startNode,
+                    endDominantParents,
+                    endNode,
+                    endNodeParents = [],
+                    curNode,
+                    nextNode;
 
-                if(Utils.isFullSelection(execDef.selection, execDef.editContext.root)){
-                    sharedDominantParent = Utils.getSharedDominantParent(
-                        execDef.selection.startNode, execDef.selection.endNode, execDef.editContext.root
-                    );
-                    Utils.stripDescendantColors(sharedDominantParent);
-                    this.colorNode(sharedDominantParent, execDef.value);
-                }else{
+                //determine start node
+                if(execDef.selection.startNode.nodeType !== 3 || execDef.selection.startOffset === 0){
+                    startDominantParents = Utils.getLeftDominantParents(execDef.selection.startNode, actingRoot);
+                    if(startDominantParents.length){
+                        startNode = startDominantParents.pop();
+                    } else {
+                        startNode = execDef.selection.startNode;
+                    }
+                } else {
+                    startNode = execDef.selection.startNode;
+                }
 
+                //determine end node
+                if(execDef.selection.endNode.nodeType !== 3 || execDef.selection.endOffset === execDef.selection.endNode.length){
+                    endDominantParents = Utils.getRightDominantParents(execDef.selection.endNode, actingRoot);
+                    if(endDominantParents.length){
+                        endNode = endDominantParents.pop();
+                    } else {
+                        endNode = execDef.selection.endNode;
+                    }
+                } else {
+                    endNode = execDef.selection.endNode;
+                }
+
+                //populate end node parents so we can quickly determine if we need to recurse into a tree.
+                curNode = endNode;
+                while(curNode.parentNode !== actingRoot){
+                    endNodeParents.push(curNode.parentNode);
+                    curNode = curNode.parentNode;
+                }
+
+                //recurse across selection and style
+                curNode = startNode;
+                while(curNode){
+                    //determine next node
+                    if(curNode !== endNode){
+                        nextNode = Utils.getNextRangeSibling(curNode, endNodeParents);
+                    } else {
+                        //stop as we are at the end
+                        nextNode = null;
+                    }
+
+                    //style current node
+                    if(curNode.nodeType === 3){
+                        this.colorTextNode(
+                            curNode,
+                            curNode === startNode ? execDef.selection.startOffset : 0,
+                            curNode === endNode ? execDef.selection.endOffset : curNode.length,
+                            execDef.value
+                        );
+                    } else {
+                        Utils.stripDescendantColors(curNode);
+                        this.colorNode(curNode, execDef.value);
+                    }
+
+                    //set next node
+                    curNode = nextNode;
                 }
             },
 
             colorNode: function(node, color){
                 if(node && node.style){
                     node.style.color = color || '';
+                }
+            },
+
+            colorTextNode: function(node, startIndex, endIndex, color){
+                var parentNode = node.parentNode,
+                    coloredNode,
+                    startTextNode,
+                    coloredTextNode,
+                    endTextNode;
+
+                if(node && node.nodeType === 3){
+                    //split out text
+                    startTextNode = startIndex > 0
+                        ? document.createTextNode(node.textContent.substring(0, startIndex))
+                        : null;
+                    coloredTextNode = document.createTextNode(node.textContent.substring(startIndex, endIndex));
+                    endTextNode = endIndex < node.textContent.length
+                        ? document.createTextNode(node.textContent.substring(endIndex))
+                        : null;
+
+                    //create container
+                    coloredNode = document.createElement('span');
+                    coloredNode.appendChild(coloredTextNode);
+                    this.colorNode(coloredNode, color);
+
+                    //append new markup
+                    if(startTextNode){
+                        parentNode.insertBefore(startTextNode, node);
+                    }
+                    parentNode.insertBefore(coloredNode, node);
+                    if(endTextNode){
+                        parentNode.insertBefore(endTextNode, node);
+                    }
+
+                    //remove old markup
+                    parentNode.removeChild(node);
                 }
             }
         });
