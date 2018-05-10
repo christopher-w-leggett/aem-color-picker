@@ -7,6 +7,10 @@
         COLOR_PICKER_COMMAND_REF = COLOR_PICKER_GROUP + '#' + COLOR_PICKER_FEATURE,
 
         Utils = (function(){
+            /**
+             * Gets the left most dominant parent node from the provided node or null if one doesn't exist.  A
+             * left most dominant parent is one that considers the provided node as the first child conceptually.
+             */
             function getLeftDominantParent(node, rootNode){
                 var dominantParent = null,
                     curChild = node,
@@ -25,6 +29,10 @@
                 return dominantParent;
             }
 
+            /**
+             * Gets the right most dominant parent node from the provided node or null if one doesn't exist.  A
+             * right most dominant parent is one that considers the provided node as the last child conceptually.
+             */
             function getRightDominantParent(node, rootNode){
                 var dominantParent = null,
                     curChild = node,
@@ -43,7 +51,10 @@
                 return dominantParent;
             }
 
-            function getColor(node, rootNode){
+            /**
+             * Gets the closest defined color starting from the provided node and working up the parent tree.
+             */
+            function getClosestColor(node, rootNode){
                 var color = '',
                     curNode = node;
 
@@ -55,10 +66,34 @@
                 return color;
             }
 
-            function isSelection(selectionDef){
+            /**
+             * Gets the closest node with a defined color starting from the provided node and working up the parent tree.
+             */
+            function getClosestColoredNode(node, rootNode){
+                var coloredNode = null,
+                    curNode = node;
+
+                while(null === coloredNode && curNode !== rootNode){
+                    coloredNode = curNode.style && curNode.style.color !== '' ? curNode : null;
+                    curNode = curNode.parentNode;
+                }
+
+                return coloredNode;
+            }
+
+            /**
+             * Determines if the provided selection consists of a range or a single cursor position.
+             */
+            function isRangeSelection(selectionDef){
                 return selectionDef.startNode && selectionDef.endNode;
             }
 
+            /**
+             * Determines if the provided selection consists of the entire contents of a common parent element.  This
+             * means that the start node and end node share a common parent, the start node is at the beginning of that
+             * common parent and the end node is at the end of that common parent.  The start/end nodes do not need to
+             * be the first/last child of the common parent and can be the first/last child conceptually.
+             */
             function isFullSelection(selectionDef, rootNode){
                 var fullSelection = false,
                     leftDominantParent = null,
@@ -79,16 +114,22 @@
                 return fullSelection;
             }
 
+            /**
+             * Gets the color of the current selection.
+             * If the selection isn't a range, it will find the color of the closest colored parent node.
+             * If the selection is a range, it will find the color of the closest parent at the start of the range and
+             * at the end of the range.  If the start and end colors match, that color will be returned.
+             */
             function getSelectedColor(selectionDef, rootNode){
                 var color = '',
                     startColor,
                     endColor;
 
-                if(!isSelection(selectionDef)){
-                    color = getColor(selectionDef.startNode, rootNode);
+                if(!isRangeSelection(selectionDef)){
+                    color = getClosestColor(selectionDef.startNode, rootNode);
                 } else {
-                    startColor = selectionDef.startNode ? getColor(selectionDef.startNode, rootNode) : '';
-                    endColor = selectionDef.endNode ? getColor(selectionDef.endNode, rootNode) : '';
+                    startColor = selectionDef.startNode ? getClosestColor(selectionDef.startNode, rootNode) : '';
+                    endColor = selectionDef.endNode ? getClosestColor(selectionDef.endNode, rootNode) : '';
                     if(startColor === endColor){
                         color = startColor;
                     }
@@ -98,9 +139,10 @@
             }
 
             return {
-                isSelection: isSelection,
+                isRangeSelection: isRangeSelection,
                 isFullSelection: isFullSelection,
-                getSelectedColor: getSelectedColor
+                getSelectedColor: getSelectedColor,
+                getClosestColoredNode: getClosestColoredNode
             };
         })(),
 
@@ -265,8 +307,29 @@
             },
 
             execute: function(execDef){
-                //TODO: Implement coloring
                 console.log(execDef);
+                if(!Utils.isRangeSelection(execDef.selection)){
+                    this.colorCursorSelection(execDef);
+                } else {
+                    this.colorRangeSelection(execDef);
+                }
+            },
+
+            colorCursorSelection: function(execDef){
+                var curNode = execDef.selection.startNode,
+                    nodeToColor = Utils.getClosestColoredNode(curNode, execDef.editContext.root);
+                while(nodeToColor === null && curNode !== execDef.editContext.root){
+                    if(curNode.style){
+                        nodeToColor = curNode;
+                    }
+                }
+
+                if(nodeToColor !== null){
+                    nodeToColor.style.color = execDef.value || '';
+                }
+            },
+
+            colorRangeSelection: function(execDef){
             }
         });
 
