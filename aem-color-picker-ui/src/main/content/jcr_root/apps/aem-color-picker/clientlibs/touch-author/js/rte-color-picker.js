@@ -255,6 +255,7 @@
                         unwrap(curChild);
                         curChild = markerNode === node ? markerNode.firstChild : markerNode.nextSibling;
                     }else{
+                        stripDescendantColors(curChild);
                         curChild = curChild.nextSibling;
                     }
                 }
@@ -278,6 +279,51 @@
                 return nextSibling;
             }
 
+            function getAncestors(node, rootNode){
+                var ancestors = [],
+                    curNode;
+
+                if(node && node !== rootNode){
+                    curNode = node.parentNode;
+                    while(curNode !== rootNode){
+                        ancestors.push(curNode);
+                        curNode = curNode.parentNode;
+                    }
+
+                    ancestors.push(rootNode);
+                }
+
+                return ancestors;
+            }
+
+            function getCommonAncestor(selectionDef, rootNode){
+                var startNodeAncestors = getAncestors(selectionDef.startNode, rootNode),
+                    endNodeAncestors = getAncestors(selectionDef.endNode, rootNode),
+                    commonAncestor = null,
+                    startIndex = 0,
+                    endIndex = 0;
+
+                if(!selectionDef.endNode && startNodeAncestors.length){
+                    commonAncestor = startNodeAncestors[0];
+                } else {
+                    while(commonAncestor === null && startIndex < startNodeAncestors.length){
+                        if(startNodeAncestors[startIndex] === endNodeAncestors[endIndex]){
+                            commonAncestor = startNodeAncestors[startIndex];
+                        }
+
+                        //move to next set of checks
+                        if(endIndex < endNodeAncestors.length - 1){
+                            endIndex++;
+                        } else {
+                            startIndex++;
+                            endIndex = 0;
+                        }
+                    }
+                }
+
+                return commonAncestor;
+            }
+
             return {
                 getLeftDominantParents: getLeftDominantParents,
                 getRightDominantParents: getRightDominantParents,
@@ -288,7 +334,8 @@
                 getClosestColoredNode: getClosestColoredNode,
                 getSharedDominantParent: getSharedDominantParent,
                 stripDescendantColors: stripDescendantColors,
-                getNextRangeSibling: getNextRangeSibling
+                getNextRangeSibling: getNextRangeSibling,
+                getCommonAncestor: getCommonAncestor
             };
         })(),
 
@@ -487,7 +534,7 @@
             },
 
             colorRangeSelection: function(execDef){
-                var actingRoot = execDef.nodeList.commonAncestor,
+                var actingRoot = Utils.getCommonAncestor(execDef.selection, execDef.editContext.root),
                     startDominantParents,
                     startNode,
                     endDominantParents,
