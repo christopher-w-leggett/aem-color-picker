@@ -604,8 +604,17 @@
             },
 
             colorNode: function(node, color){
+                var i,
+                    links;
+
                 if(node && node.style){
                     node.style.color = color || '';
+
+                    //style any contained links
+                    links = node.querySelectorAll('a');
+                    for(i = 0; i < links.length; i++){
+                        links[i].style.color = color || '';
+                    }
                 }
             },
 
