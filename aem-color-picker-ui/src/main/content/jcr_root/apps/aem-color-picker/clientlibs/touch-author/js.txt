@@ -1,2 +1,8 @@
 #base=js
-rte-color-picker.js
+rte/Utils.js
+
+rte/ui/dialogs/TextColor.js
+
+rte/commands/TextColor.js
+
+rte/plugins/ColorsPlugin.js
