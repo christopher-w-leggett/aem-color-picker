@@ -6,7 +6,11 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
 
     var GROUP = 'colors',
         COMMAND_NAME = 'text-color',
-        COMMAND_REF = GROUP + '#' + COMMAND_NAME;
+        COMMAND_REF = GROUP + '#' + COMMAND_NAME,
+        TOOLTIP_KEYS = {
+            'title': 'plugins.' + GROUP + '.' + COMMAND_NAME + '.title',
+            'text': 'plugins.' + GROUP + '.' + COMMAND_NAME + '.text'
+        };
 
     ColorPicker.rte.commands.TextColor = new Class({
         toString: 'TextColor',
@@ -191,6 +195,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
 
     ColorPicker.rte.commands.TextColor.COMMAND_NAME = COMMAND_NAME;
     ColorPicker.rte.commands.TextColor.COMMAND_REF = COMMAND_REF;
+    ColorPicker.rte.commands.TextColor.TOOLTIP_KEYS = TOOLTIP_KEYS;
 
     //register command
     CUI.rte.commands.CommandRegistry.register(

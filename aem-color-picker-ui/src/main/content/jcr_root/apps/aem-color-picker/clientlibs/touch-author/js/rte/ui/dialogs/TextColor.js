@@ -2,7 +2,7 @@ ColorPicker = window.ColorPicker || {};
 ColorPicker.rte = ColorPicker.rte || {};
 ColorPicker.rte.ui = ColorPicker.rte.ui || {};
 ColorPicker.rte.ui.dialogs = ColorPicker.rte.ui.dialogs || {};
-(function(CUI, $){
+(function(CUI){
     "use strict";
 
     var DATA_TYPE = 'text-color';
@@ -103,4 +103,4 @@ ColorPicker.rte.ui.dialogs = ColorPicker.rte.ui.dialogs || {};
 
         return dialogFragment;
     };
-})(window.CUI, window.jQuery);
+})(window.CUI);

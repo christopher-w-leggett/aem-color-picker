@@ -5,4 +5,7 @@ rte/ui/dialogs/TextColor.js
 
 rte/commands/TextColor.js
 
+rte/features/Feature.js
+rte/features/TextColor.js
+
 rte/plugins/ColorsPlugin.js
