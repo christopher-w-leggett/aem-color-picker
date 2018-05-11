@@ -89,17 +89,17 @@ ColorPicker.rte.features = ColorPicker.rte.features || {};
                 }
 
                 dialogManager.prepareShow(this.dialog);
-                this.dialog.setColor(
-                    selectionDef ? ColorPicker.rte.Utils.getComputedColor(selectionDef.selection) : ''
-                );
+                this.dialog.setColor(selectionDef ? ColorPicker.rte.Utils.getComputedStyle(
+                    selectionDef.selection, {style: 'color'}, editContext.root
+                ) : '');
                 this.savedNativeSelection = CUI.rte.Selection.saveNativeSelection(editContext);
                 dialogManager.show(this.dialog);
             }
         },
 
         updateState: function(selDef){
-            var selectedColor = ColorPicker.rte.Utils.getSelectionColor(
-                selDef.selection, selDef.editContext.root
+            var selectedColor = ColorPicker.rte.Utils.getSelectionStyle(
+                selDef.selection, {style: 'color'}, selDef.editContext.root
             );
             this.ui.setSelected('' !== selectedColor && ColorPicker.rte.Utils.isFullSelection(
                 selDef.selection, selDef.editContext.root

@@ -38,7 +38,9 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
 
         colorCursorSelection: function(execDef){
             var curNode = execDef.selection.startNode,
-                nodeToColor = ColorPicker.rte.Utils.getClosestColoredNode(curNode, execDef.editContext.root);
+                nodeToColor = ColorPicker.rte.Utils.getClosestStyledNode(
+                    curNode, {style: 'color'}, execDef.editContext.root
+                );
             while(nodeToColor === null && curNode !== execDef.editContext.root){
                 if(curNode.style){
                     nodeToColor = curNode;
@@ -47,7 +49,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
             }
 
             this.colorNode(nodeToColor, execDef.value);
-            if(ColorPicker.rte.Utils.canUnwrap(nodeToColor)){
+            if(ColorPicker.rte.Utils.canUnwrap(nodeToColor, 'span')){
                 ColorPicker.rte.Utils.unwrap(nodeToColor);
             }
         },
@@ -56,9 +58,9 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
             var sharedDominantParent = ColorPicker.rte.Utils.getSharedDominantParent(
                 execDef.selection.startNode, execDef.selection.endNode, execDef.editContext.root
             );
-            ColorPicker.rte.Utils.stripDescendantColors(sharedDominantParent);
+            ColorPicker.rte.Utils.stripDescendantStyle(sharedDominantParent, {style: 'color', unwrapTagName: 'span'});
             this.colorNode(sharedDominantParent, execDef.value);
-            if(ColorPicker.rte.Utils.canUnwrap(sharedDominantParent)){
+            if(ColorPicker.rte.Utils.canUnwrap(sharedDominantParent, 'span')){
                 ColorPicker.rte.Utils.unwrap(sharedDominantParent);
             }
         },
@@ -129,9 +131,9 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
                         execDef.value
                     );
                 } else {
-                    ColorPicker.rte.Utils.stripDescendantColors(curNode);
+                    ColorPicker.rte.Utils.stripDescendantStyle(curNode, {style: 'color', unwrapTagName: 'span'});
                     this.colorNode(curNode, execDef.value);
-                    if(ColorPicker.rte.Utils.canUnwrap(curNode)){
+                    if(ColorPicker.rte.Utils.canUnwrap(curNode, 'span')){
                         ColorPicker.rte.Utils.unwrap(curNode);
                     }
                 }

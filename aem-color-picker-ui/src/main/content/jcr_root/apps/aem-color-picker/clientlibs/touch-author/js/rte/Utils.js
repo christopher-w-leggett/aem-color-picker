@@ -76,33 +76,38 @@ ColorPicker.rte.Utils = (function(){
     }
 
     /**
-     * Gets the closest defined color starting from the provided node and working up the parent tree.
+     * Gets the closest defined style starting from the provided node and working up the parent tree.
      */
-    function getClosestColor(node, rootNode){
-        var color = '',
-            curNode = node;
+    function getClosestStyle(node, criteria, rootNode){
+        var style = '',
+            curNode = node,
+            searchTag = criteria.tagName || '*';
 
-        while('' === color && curNode !== rootNode){
-            color = curNode.style ? curNode.style.color : '';
+        while('' === style && curNode !== rootNode){
+            style = curNode.style && (curNode.tagName.toLowerCase() === searchTag || searchTag === '*')
+                ? curNode.style[criteria.style]
+                : '';
             curNode = curNode.parentNode;
         }
 
-        return color;
+        return style;
     }
 
     /**
-     * Gets the closest node with a defined color starting from the provided node and working up the parent tree.
+     * Gets the closest node with a defined style starting from the provided node and working up the parent tree.
      */
-    function getClosestColoredNode(node, rootNode){
-        var coloredNode = null,
-            curNode = node;
+    function getClosestStyledNode(node, criteria, rootNode){
+        var styledNode = null,
+            curNode = node,
+            searchTag = criteria.tagName || '*';
 
-        while(null === coloredNode && curNode !== rootNode){
-            coloredNode = curNode.style && curNode.style.color !== '' ? curNode : null;
+        while(null === styledNode && curNode !== rootNode){
+            styledNode = curNode.style && curNode.style[criteria.style] !== ''
+                && (curNode.tagName.toLowerCase() === searchTag || searchTag === '*') ? curNode : null;
             curNode = curNode.parentNode;
         }
 
-        return coloredNode;
+        return styledNode;
     }
 
     /**
@@ -138,21 +143,21 @@ ColorPicker.rte.Utils = (function(){
     }
 
     /**
-     * Gets the color of the current selection.
-     * If the selection isn't a range, it will find the color of the closest colored parent node.
-     * If the selection is a range, it will find the color of the closest parent at the start of the range and
-     * at the end of the range.  If the start and end colors match, that color will be returned.
+     * Gets the requested style of the current selection.
+     * If the selection isn't a range, it will find the style of the closest styled parent node.
+     * If the selection is a range, it will find the style of the closest parent at the start of the range and
+     * at the end of the range.  If the start and end styles match, that style will be returned.
      */
-    function getSelectionColor(selectionDef, rootNode){
+    function getSelectionStyle(selectionDef, criteria, rootNode){
         var color = '',
             startColor,
             endColor;
 
         if(!isRangeSelection(selectionDef)){
-            color = getClosestColor(selectionDef.startNode, rootNode);
+            color = getClosestStyle(selectionDef.startNode, criteria, rootNode);
         } else {
-            startColor = selectionDef.startNode ? getClosestColor(selectionDef.startNode, rootNode) : '';
-            endColor = selectionDef.endNode ? getClosestColor(selectionDef.endNode, rootNode) : '';
+            startColor = selectionDef.startNode ? getClosestStyle(selectionDef.startNode, criteria, rootNode) : '';
+            endColor = selectionDef.endNode ? getClosestStyle(selectionDef.endNode, criteria, rootNode) : '';
             if(startColor === endColor){
                 color = startColor;
             }
@@ -162,17 +167,33 @@ ColorPicker.rte.Utils = (function(){
     }
 
     /**
-     * Gets the computed color of the current selection.
-     * If the selection isn't a range, it will find the computed color of the start node.
-     * If the selection is a range, it will find the computed color of the start node and end node.  If the
-     * start and end colors match, that color will be returned.
+     * Gets the computed style of the current selection.  If a tagName is provided in the criteria, the closest parent
+     * with that tagName will be considered.
+     * If the selection isn't a range, it will find the computed style of the start node.
+     * If the selection is a range, it will find the computed style of the start node and end node.  If the
+     * start and end styles match, that style will be returned.
      */
-    function getComputedColor(selectionDef){
-        var color = '',
-            startNode = selectionDef.startNode,
+    function getComputedStyle(selectionDef, criteria, rootNode){
+        var startNode = selectionDef.startNode,
             endNode = selectionDef.endNode,
-            startColor,
-            endColor;
+            startStyle,
+            endStyle;
+
+        //if we were provided a specific tag name to look for, move our start/end nodes to that position
+        if(criteria.tagName && criteria.tagName !== '*'){
+            while(startNode && (!startNode.tagName || startNode.tagName.toLowerCase() !== criteria.tagName)){
+                startNode = startNode.parentNode;
+                if(startNode === rootNode){
+                    startNode = null;
+                }
+            }
+            while(endNode && (!endNode.tagName || endNode.tagName.toLowerCase() !== criteria.tagName)){
+                endNode = endNode.parentNode;
+                if(endNode === rootNode){
+                    endNode = null;
+                }
+            }
+        }
 
         //get element from start/end nodes
         while(startNode && startNode.nodeType === 3){
@@ -182,12 +203,12 @@ ColorPicker.rte.Utils = (function(){
             endNode = endNode.parentNode;
         }
 
-        //get computed colors
-        startColor = startNode ? window.getComputedStyle(startNode, null).getPropertyValue('color') : '';
-        endColor = endNode ? window.getComputedStyle(endNode, null).getPropertyValue('color') : '';
+        //get computed styles
+        startStyle = startNode ? window.getComputedStyle(startNode, null).getPropertyValue(criteria.style) : '';
+        endStyle = endNode ? window.getComputedStyle(endNode, null).getPropertyValue(criteria.style) : '';
 
-        //return proper computed color
-        return !endNode || startColor === endColor ? startColor : '';
+        //return proper computed style
+        return !selectionDef.endNode || startStyle === endStyle ? startStyle : '';
     }
 
     /**
@@ -204,10 +225,10 @@ ColorPicker.rte.Utils = (function(){
     }
 
     /**
-     * Determines if provided node is a span tag.
+     * Determines if provided node is a specific tag.
      */
-    function isSpan(node){
-        return node.tagName && node.tagName.toLowerCase() === 'span';
+    function isTag(node, tagName){
+        return node.tagName && node.tagName.toLowerCase() === tagName;
     }
 
     /**
@@ -230,28 +251,30 @@ ColorPicker.rte.Utils = (function(){
     /**
      * Determines if the node can be unwrapped.  This is true if the node is a coloring node.
      */
-    function canUnwrap(node){
-        return isSpan(node) && (hasNoAttributes(node) || hasOnlyEmptyStyleAttribute(node));
+    function canUnwrap(node, tagName){
+        return isTag(node, tagName) && (hasNoAttributes(node) || hasOnlyEmptyStyleAttribute(node));
     }
 
     /**
-     * Strips all coloring markup for descendant nodes.
+     * Strips styles from descendant nodes.
      */
-    function stripDescendantColors(node){
+    function stripDescendantStyle(node, criteria){
         var curChild = node.firstChild,
-            markerNode;
+            markerNode,
+            stripTagName = criteria.stripTagName || '*';
 
         while(curChild){
-            if(curChild.style){
-                curChild.style.color = '';
+            if(curChild.style && curChild.tagName
+                && (curChild.tagName.toLowerCase() === stripTagName || stripTagName === '*')){
+                curChild.style[criteria.style] = '';
             }
 
-            if(canUnwrap(curChild)){
+            if(criteria.unwrapTagName && canUnwrap(curChild, criteria.unwrapTagName)){
                 markerNode = curChild.previousSibling || node;
                 unwrap(curChild);
                 curChild = markerNode === node ? markerNode.firstChild : markerNode.nextSibling;
             }else{
-                stripDescendantColors(curChild);
+                stripDescendantStyle(curChild, criteria);
                 curChild = curChild.nextSibling;
             }
         }
@@ -325,11 +348,11 @@ ColorPicker.rte.Utils = (function(){
         getRightDominantParents: getRightDominantParents,
         isRangeSelection: isRangeSelection,
         isFullSelection: isFullSelection,
-        getSelectionColor: getSelectionColor,
-        getComputedColor: getComputedColor,
-        getClosestColoredNode: getClosestColoredNode,
+        getSelectionStyle: getSelectionStyle,
+        getComputedStyle: getComputedStyle,
+        getClosestStyledNode: getClosestStyledNode,
         getSharedDominantParent: getSharedDominantParent,
-        stripDescendantColors: stripDescendantColors,
+        stripDescendantStyle: stripDescendantStyle,
         getNextRangeSibling: getNextRangeSibling,
         getCommonAncestor: getCommonAncestor,
         canUnwrap: canUnwrap,
