@@ -15,7 +15,10 @@ ColorPicker.rte.plugins = ColorPicker.rte.plugins || {};
 
         construct: function (editorKernel, pluginId) {
             this._init(editorKernel, pluginId);
-            this.features = [new ColorPicker.rte.features.TextColor(editorKernel, this)];
+            this.features = [
+                new ColorPicker.rte.features.TextColor(editorKernel, this),
+                new ColorPicker.rte.features.TextHighlight(editorKernel, this)
+            ];
         },
 
         getFeatures: function(){

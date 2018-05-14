@@ -1,6 +1,6 @@
 ColorPicker = window.ColorPicker || {};
 ColorPicker.rte = ColorPicker.rte || {};
-ColorPicker.rte.Utils = (function(){
+ColorPicker.rte.Utils = (function(CUI){
     "use strict";
 
     /**
@@ -51,15 +51,17 @@ ColorPicker.rte.Utils = (function(){
      * Gets the dominant parent that is shared between the startNode and endNode.  The dominant parent will
      * consider the startNode as the first child and the endNode as the last child conceptually.
      */
-    function getSharedDominantParent(startNode, endNode, rootNode){
+    function getSharedDominantParent(startNode, endNode, rootNode, sharedTagName){
         var leftDominantParents = getLeftDominantParents(startNode, rootNode),
             rightDominantParents = getRightDominantParents(endNode, rootNode),
+            sharedTagName = sharedTagName || '*',
             sharedDominantParent = null,
             leftIndex = leftDominantParents.length - 1,
             rightIndex = rightDominantParents.length - 1;
 
         while(sharedDominantParent === null && leftIndex > -1){
-            if(leftDominantParents[leftIndex] === rightDominantParents[rightIndex]){
+            if(leftDominantParents[leftIndex] === rightDominantParents[rightIndex]
+                && (sharedTagName === '*' || leftDominantParents[leftIndex].tagName.toLowerCase() === sharedTagName)){
                 sharedDominantParent = leftDominantParents[leftIndex];
             }
 
@@ -73,6 +75,35 @@ ColorPicker.rte.Utils = (function(){
         }
 
         return sharedDominantParent;
+    }
+
+    /**
+     * Gets the parent that is shared between the startNode and endNode.  The parent chosen is the one closest to both
+     * the start/end nodes and considers the startNode as the first child and the endNode as the last child
+     * conceptually.
+     */
+    function getSharedParent(startNode, endNode, rootNode){
+        var leftDominantParents = getLeftDominantParents(startNode, rootNode),
+            rightDominantParents = getRightDominantParents(endNode, rootNode),
+            sharedParent = null,
+            leftIndex = 0,
+            rightIndex = 0;
+
+        while(sharedParent === null && leftIndex < leftDominantParents.length){
+            if(leftDominantParents[leftIndex] === rightDominantParents[rightIndex]){
+                sharedParent = leftDominantParents[leftIndex];
+            }
+
+            //move to next set of checks
+            if(rightIndex < rightDominantParents.length - 1){
+                rightIndex++;
+            } else {
+                leftIndex++;
+                rightIndex = 0;
+            }
+        }
+
+        return sharedParent;
     }
 
     /**
@@ -222,13 +253,14 @@ ColorPicker.rte.Utils = (function(){
         }
 
         parentNode.removeChild(node);
+        parentNode.normalize();
     }
 
     /**
      * Determines if provided node is a specific tag.
      */
-    function isTag(node, tagName){
-        return node.tagName && node.tagName.toLowerCase() === tagName;
+    function isTag(node, tagNameRegex){
+        return node.tagName && tagNameRegex.test(node.tagName);
     }
 
     /**
@@ -251,25 +283,43 @@ ColorPicker.rte.Utils = (function(){
     /**
      * Determines if the node can be unwrapped.  This is true if the node is a coloring node.
      */
-    function canUnwrap(node, tagName){
-        return isTag(node, tagName) && (hasNoAttributes(node) || hasOnlyEmptyStyleAttribute(node));
+    function canUnwrap(node, tagNameRegex){
+        return isTag(node, tagNameRegex) && (hasNoAttributes(node) || hasOnlyEmptyStyleAttribute(node));
     }
 
     /**
-     * Strips styles from descendant nodes.
+     * Strips styles from descendant nodes.  Any tag matching the unwrap tagName without any styles will be unwrapped.
+     *
+     * criteria = {
+     *     'strip': {
+     *         'tagName': <regex>,
+     *         'styles': {
+     *             '<style-name>': <regex>,
+     *             ...
+     *         }
+     *     },
+     *     'unwrap': {
+     *         'tagName': <regex>,
+     *     }
+     * }
      */
     function stripDescendantStyle(node, criteria){
         var curChild = node.firstChild,
-            markerNode,
-            stripTagName = criteria.stripTagName || '*';
+            curStyle,
+            markerNode;
 
         while(curChild){
-            if(curChild.style && curChild.tagName
-                && (curChild.tagName.toLowerCase() === stripTagName || stripTagName === '*')){
-                curChild.style[criteria.style] = '';
+            if(curChild.style && curChild.tagName && criteria.strip.tagName.test(curChild.tagName)){
+                for(curStyle in criteria.strip.styles){
+                    if(criteria.strip.styles.hasOwnProperty(curStyle)){
+                        if(criteria.strip.styles[curStyle].test(curChild.style[curStyle])){
+                            curChild.style[curStyle] = '';
+                        }
+                    }
+                }
             }
 
-            if(criteria.unwrapTagName && canUnwrap(curChild, criteria.unwrapTagName)){
+            if(criteria.unwrap.tagName && canUnwrap(curChild, criteria.unwrap.tagName)){
                 markerNode = curChild.previousSibling || node;
                 unwrap(curChild);
                 curChild = markerNode === node ? markerNode.firstChild : markerNode.nextSibling;
@@ -315,6 +365,22 @@ ColorPicker.rte.Utils = (function(){
         return ancestors;
     }
 
+    function findAncestorTag(node, tagName, rootNode){
+        var ancestor = null,
+            ancestors = ColorPicker.rte.Utils.getAncestors(node, rootNode),
+            i = ancestors.length - 1;
+
+        while(ancestor === null && i >= 0){
+            if(ancestors[i].tagName && ancestors[i].tagName.toLowerCase() === tagName){
+                ancestor = ancestors[i];
+            }
+
+            i--;
+        }
+
+        return ancestor;
+    }
+
     function getCommonAncestor(selectionDef, rootNode){
         var startNodeAncestors = getAncestors(selectionDef.startNode, rootNode),
             endNodeAncestors = getAncestors(selectionDef.endNode, rootNode),
@@ -352,10 +418,13 @@ ColorPicker.rte.Utils = (function(){
         getComputedStyle: getComputedStyle,
         getClosestStyledNode: getClosestStyledNode,
         getSharedDominantParent: getSharedDominantParent,
+        getSharedParent: getSharedParent,
         stripDescendantStyle: stripDescendantStyle,
         getNextRangeSibling: getNextRangeSibling,
+        getAncestors: getAncestors,
+        findAncestorTag: findAncestorTag,
         getCommonAncestor: getCommonAncestor,
         canUnwrap: canUnwrap,
         unwrap: unwrap
     };
-})();
+})(window.CUI);

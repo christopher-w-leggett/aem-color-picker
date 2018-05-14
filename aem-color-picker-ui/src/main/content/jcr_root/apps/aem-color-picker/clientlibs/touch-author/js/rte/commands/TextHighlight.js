@@ -5,27 +5,28 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
     "use strict";
 
     var GROUP = 'colors',
-        COMMAND_NAME = 'text-color',
+        COMMAND_NAME = 'text-highlight',
         COMMAND_REF = GROUP + '#' + COMMAND_NAME,
         TOOLTIP_KEYS = {
             'title': 'plugins.' + GROUP + '.' + COMMAND_NAME + '.title',
             'text': 'plugins.' + GROUP + '.' + COMMAND_NAME + '.text'
         };
 
-    ColorPicker.rte.commands.TextColor = new Class({
-        toString: 'TextColor',
+    ColorPicker.rte.commands.TextHighlight = new Class({
+        toString: 'TextHighlight',
 
         extend: CUI.rte.commands.Command,
 
         stripDef: {
             'strip': {
-                'tagName': /.*/,
+                'tagName': /mark/i,
                 'styles': {
-                    'color': /^((?!^inherit$).)*$/
+                    'background-color': /.*/,
+                    'color': /^inherit$/
                 }
             },
             'unwrap': {
-                'tagName': /span/i
+                'tagName': /mark/i
             }
         },
 
@@ -40,44 +41,40 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
 
         execute: function(execDef){
             if(!ColorPicker.rte.Utils.isRangeSelection(execDef.selection)){
-                this.colorCursorSelection(execDef);
+                this.highlightCursorSelection(execDef);
             } else if(ColorPicker.rte.Utils.isFullSelection(execDef.selection, execDef.editContext.root)){
-                this.colorFullSelection(execDef);
+                this.highlightFullSelection(execDef);
             } else {
-                this.colorRangeSelection(execDef);
+                this.highlightRangeSelection(execDef);
             }
         },
 
-        colorCursorSelection: function(execDef){
-            var curNode = execDef.selection.startNode,
-                nodeToColor = ColorPicker.rte.Utils.getClosestStyledNode(
-                    curNode, {style: 'color'}, execDef.editContext.root
-                );
-            while(nodeToColor === null && curNode !== execDef.editContext.root){
-                if(curNode.style){
-                    nodeToColor = curNode;
-                }
-                curNode = curNode.parentNode;
-            }
-
-            this.colorNode(nodeToColor, execDef.value, execDef.editContext.root);
-            if(ColorPicker.rte.Utils.canUnwrap(nodeToColor, /span/i)){
-                ColorPicker.rte.Utils.unwrap(nodeToColor);
-            }
-        },
-
-        colorFullSelection: function(execDef){
-            var sharedDominantParent = ColorPicker.rte.Utils.getSharedDominantParent(
-                execDef.selection.startNode, execDef.selection.endNode, execDef.editContext.root
+        highlightCursorSelection: function(execDef){
+            var ancestorMark = ColorPicker.rte.Utils.findAncestorTag(
+                execDef.selection.startNode, 'mark', execDef.editContext.root
             );
-            ColorPicker.rte.Utils.stripDescendantStyle(sharedDominantParent, this.stripDef);
-            this.colorNode(sharedDominantParent, execDef.value, execDef.editContext.root);
-            if(ColorPicker.rte.Utils.canUnwrap(sharedDominantParent, /span/i)){
-                ColorPicker.rte.Utils.unwrap(sharedDominantParent);
+            if(ancestorMark !== null){
+                this.styleMark(ancestorMark, execDef.value);
             }
         },
 
-        colorRangeSelection: function(execDef){
+        highlightFullSelection: function(execDef){
+            var dominantMark = ColorPicker.rte.Utils.getSharedDominantParent(
+                    execDef.selection.startNode, execDef.selection.endNode, execDef.editContext.root, 'mark'
+                ),
+                sharedParent = ColorPicker.rte.Utils.getSharedParent(
+                    execDef.selection.startNode, execDef.selection.endNode, execDef.editContext.root
+                );
+            if(dominantMark !== null){
+                this.removeDescendantMarks(dominantMark);
+                this.styleMark(dominantMark, execDef.value);
+            } else {
+                this.removeDescendantMarks(sharedParent);
+                this.markNode(sharedParent, execDef.value);
+            }
+        },
+
+        highlightRangeSelection: function(execDef){
             var actingRoot = ColorPicker.rte.Utils.getCommonAncestor(execDef.selection, execDef.editContext.root),
                 startDominantParents,
                 startNode,
@@ -136,18 +133,15 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
 
                 //style current node
                 if(curNode.nodeType === 3){
-                    this.colorTextNode(
+                    this.markTextNode(
                         curNode,
                         curNode === startNode ? execDef.selection.startOffset : 0,
                         curNode === endNode ? execDef.selection.endOffset : curNode.length,
                         execDef.value
                     );
                 } else {
-                    ColorPicker.rte.Utils.stripDescendantStyle(curNode, this.stripDef);
-                    this.colorNode(curNode, execDef.value, execDef.editContext.root);
-                    if(ColorPicker.rte.Utils.canUnwrap(curNode, /span/i)){
-                        ColorPicker.rte.Utils.unwrap(curNode);
-                    }
+                    this.removeDescendantMarks(curNode);
+                    this.markNode(curNode, execDef.value);
                 }
 
                 //set next node
@@ -155,54 +149,25 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
             }
         },
 
-        colorNode: function(node, color, rootNode){
-            var coloredParent,
-                i,
-                links,
-                marks;
+        markNode: function(node, color){
+            var i;
 
-            if(node && node.style){
-                //determine if a parent node contains a color.
-                coloredParent = ColorPicker.rte.Utils.getClosestStyledNode(
-                    node.parentNode, {style: 'color'}, rootNode
-                );
-
-                //style node
-                if(color !== ''){
-                    //any nodes getting a color applied will get the specified color.
-                    node.style.color = color;
+            if(node){
+                if(node.nodeType === 3){
+                    this.markTextNode(node, 0, node.length, color);
                 } else {
-                    //color is being removed, so we must handle special remove logic for certain tags.
-                    if(node.tagName.toLowerCase() === 'a'){
-                        //links will receive a value of 'inherit' if a parent contains a color.
-                        node.style.color = coloredParent ? 'inherit' : '';
-                    } else if(node.tagName.toLowerCase() === 'mark'){
-                        //marks will always inherit if there isn't a specified color.
-                        node.style.color = 'inherit';
-                    } else {
-                        //all other nodes will have their color removed.
-                        node.style.color = '';
+                    for(i = 0; i < node.childNodes.length; i++){
+                        this.markNode(node.childNodes[i],  color);
                     }
-                }
-
-                //style specified descendants
-                links = node.querySelectorAll('a');
-                for(i = 0; i < links.length; i++){
-                    links[i].style.color = color !== '' || coloredParent ? 'inherit' : '';
-                }
-                marks = node.querySelectorAll('mark');
-                for(i = 0; i < marks.length; i++){
-                    //descendant marks always get 'inherit' color.
-                    marks[i].style.color = 'inherit';
                 }
             }
         },
 
-        colorTextNode: function(node, startIndex, endIndex, color){
+        markTextNode: function(node, startIndex, endIndex, color){
             var parentNode = node.parentNode,
-                coloredNode,
+                markNode,
                 startTextNode,
-                coloredTextNode,
+                markedTextNode,
                 endTextNode;
 
             if(node && node.nodeType === 3 && color !== ''){
@@ -210,21 +175,22 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
                 startTextNode = startIndex > 0
                     ? document.createTextNode(node.textContent.substring(0, startIndex))
                     : null;
-                coloredTextNode = document.createTextNode(node.textContent.substring(startIndex, endIndex));
+                markedTextNode = document.createTextNode(node.textContent.substring(startIndex, endIndex));
                 endTextNode = endIndex < node.textContent.length
                     ? document.createTextNode(node.textContent.substring(endIndex))
                     : null;
 
                 //create container
-                coloredNode = document.createElement('span');
-                coloredNode.appendChild(coloredTextNode);
-                coloredNode.style.color = color;
+                markNode = document.createElement('mark');
+                markNode.appendChild(markedTextNode);
+                markNode.style['background-color'] = color;
+                markNode.style.color = 'inherit';
 
                 //append new markup
                 if(startTextNode){
                     parentNode.insertBefore(startTextNode, node);
                 }
-                parentNode.insertBefore(coloredNode, node);
+                parentNode.insertBefore(markNode, node);
                 if(endTextNode){
                     parentNode.insertBefore(endTextNode, node);
                 }
@@ -232,15 +198,67 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
                 //remove old markup
                 parentNode.removeChild(node);
             }
+        },
+
+        styleMark: function(markNode, color){
+            if(markNode){
+                if(color !== ''){
+                    markNode.style['background-color'] = color;
+                } else {
+                    //remove mark
+                    this.removeMark(markNode);
+                }
+            }
+        },
+
+        removeDescendantMarks: function(node){
+            var marks,
+                i;
+
+            //first try to strip marks completely.
+            ColorPicker.rte.Utils.stripDescendantStyle(node, this.stripDef);
+
+            //convert any remaining marks
+            marks = node.querySelectorAll('mark');
+            for(i = 0; i < marks.length; i++){
+                this.removeMark(marks[i]);
+            }
+        },
+
+        removeMark: function(markNode){
+            var span,
+                i;
+
+            //remove styling
+            markNode.style['background-color'] = '';
+            if(markNode.style.color === 'inherit'){
+                markNode.style.color = '';
+            }
+
+            //strip mark tag.
+            if(ColorPicker.rte.Utils.canUnwrap(markNode, /mark/i)){
+                ColorPicker.rte.Utils.unwrap(markNode);
+            }else{
+                //convert mark into span
+                span = document.createElement('span');
+                for(i = 0; i < markNode.attributes.length; i++){
+                    span.setAttribute(markNode.attributes[i].name, markNode.attributes[i].value);
+                }
+                while(markNode.firstChild){
+                    span.appendChild(markNode.firstChild);
+                }
+                markNode.parentNode.insertBefore(span, markNode);
+                markNode.parentNode.removeChild(markNode);
+            }
         }
     });
 
-    ColorPicker.rte.commands.TextColor.COMMAND_NAME = COMMAND_NAME;
-    ColorPicker.rte.commands.TextColor.COMMAND_REF = COMMAND_REF;
-    ColorPicker.rte.commands.TextColor.TOOLTIP_KEYS = TOOLTIP_KEYS;
+    ColorPicker.rte.commands.TextHighlight.COMMAND_NAME = COMMAND_NAME;
+    ColorPicker.rte.commands.TextHighlight.COMMAND_REF = COMMAND_REF;
+    ColorPicker.rte.commands.TextHighlight.TOOLTIP_KEYS = TOOLTIP_KEYS;
 
     //register command
     CUI.rte.commands.CommandRegistry.register(
-        COMMAND_NAME, ColorPicker.rte.commands.TextColor
+        COMMAND_NAME, ColorPicker.rte.commands.TextHighlight
     );
 })(window.CUI);

@@ -2,10 +2,13 @@
 rte/Utils.js
 
 rte/ui/dialogs/TextColor.js
+rte/ui/dialogs/TextHighlight.js
 
 rte/commands/TextColor.js
+rte/commands/TextHighlight.js
 
 rte/features/Feature.js
 rte/features/TextColor.js
+rte/features/TextHighlight.js
 
 rte/plugins/ColorsPlugin.js
