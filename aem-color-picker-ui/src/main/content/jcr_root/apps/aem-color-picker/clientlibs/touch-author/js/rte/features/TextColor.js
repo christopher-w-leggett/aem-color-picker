@@ -26,21 +26,12 @@ ColorPicker.rte.features = ColorPicker.rte.features || {};
         },
 
         initializeUI: function(tbGenerator, options){
-            var plugins = CUI.rte.plugins,
-                tooltip;
+            var plugins = CUI.rte.plugins;
 
             tbGenerator.registerIcon(ColorPicker.rte.commands.TextColor.COMMAND_REF, 'textColor');
             tbGenerator.registerAdditionalClasses(ColorPicker.rte.commands.TextColor.COMMAND_REF, 'rte--trigger');
 
-            tooltip = this.getTooltip(ColorPicker.rte.commands.TextColor.COMMAND_NAME);
-            if(tooltip.title === ColorPicker.rte.commands.TextColor.TOOLTIP_KEYS.title){
-                tooltip.title = 'Text Color';
-            }
-            if(tooltip.text === ColorPicker.rte.commands.TextColor.TOOLTIP_KEYS.text){
-                tooltip.text = 'Text Color';
-            }
-
-            this.ui = tbGenerator.createElement(this.getName(), this.plugin, true, tooltip);
+            this.ui = tbGenerator.createElement(this.getName(), this.plugin, true, this.config.tooltip);
             tbGenerator.addElement(this.plugin.pluginId, plugins.Plugin.SORT_EDIT, this.ui, 100);
         },
 
@@ -53,12 +44,18 @@ ColorPicker.rte.features = ColorPicker.rte.features || {};
                 'showproperties': 'on',
                 'placeholder': '',
                 'colors': [],
-                'tooltips': {}
+                'tooltip': {}
             };
-            defaultConfig.tooltips[ColorPicker.rte.commands.TextColor.COMMAND_NAME] = {
+            defaultConfig.tooltip = {
                 'title': CUI.rte.Utils.i18n(ColorPicker.rte.commands.TextColor.TOOLTIP_KEYS.title),
                 'text': CUI.rte.Utils.i18n(ColorPicker.rte.commands.TextColor.TOOLTIP_KEYS.text)
             };
+            if(defaultConfig.tooltip.title === ColorPicker.rte.commands.TextColor.TOOLTIP_KEYS.title){
+                defaultConfig.tooltip.title = 'Text Color';
+            }
+            if(defaultConfig.tooltip.text === ColorPicker.rte.commands.TextColor.TOOLTIP_KEYS.text){
+                defaultConfig.tooltip.text = 'Text Color';
+            }
             CUI.rte.Utils.applyDefaults(config, defaultConfig);
             this.config = config;
         },

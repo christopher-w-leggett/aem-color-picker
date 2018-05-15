@@ -47,10 +47,6 @@ ColorPicker.rte.features = ColorPicker.rte.features || {};
             // may be overridden if dialog is used in this feature.  If false, this features execute function will be
             // called.
             return true;
-        },
-
-        getTooltip: function (command) {
-            return this.config.tooltips && this.config.tooltips[command] ? this.config.tooltips[command] : {};
         }
     });
 })(window.CUI);
