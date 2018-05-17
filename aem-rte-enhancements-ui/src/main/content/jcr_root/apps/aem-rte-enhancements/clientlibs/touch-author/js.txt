@@ -4,11 +4,15 @@ rte/Utils.js
 rte/ui/dialogs/TextColor.js
 rte/ui/dialogs/TextHighlight.js
 
+rte/commands/EnforceMarkup.js
 rte/commands/TextColor.js
 rte/commands/TextHighlight.js
 
 rte/features/Feature.js
+rte/features/EnforceMarkup.js
 rte/features/TextColor.js
 rte/features/TextHighlight.js
 
+rte/plugins/FeatureBasedPlugin.js
+rte/plugins/EnforcerPlugin.js
 rte/plugins/ColorsPlugin.js

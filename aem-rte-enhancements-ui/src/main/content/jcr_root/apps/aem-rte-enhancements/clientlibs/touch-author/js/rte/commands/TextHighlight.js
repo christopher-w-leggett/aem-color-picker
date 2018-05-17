@@ -1,6 +1,7 @@
 RTEExt = window.RTEExt || {};
 RTEExt.rte = RTEExt.rte || {};
 RTEExt.rte.commands = RTEExt.rte.commands || {};
+//TODO: Don't allow nested mark tags
 (function(CUI){
     "use strict";
 
@@ -240,15 +241,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                 RTEExt.rte.Utils.unwrap(markNode);
             }else{
                 //convert mark into span
-                span = document.createElement('span');
-                for(i = 0; i < markNode.attributes.length; i++){
-                    span.setAttribute(markNode.attributes[i].name, markNode.attributes[i].value);
-                }
-                while(markNode.firstChild){
-                    span.appendChild(markNode.firstChild);
-                }
-                markNode.parentNode.insertBefore(span, markNode);
-                markNode.parentNode.removeChild(markNode);
+                RTEExt.rte.Utils.convertTagName(markNode, 'span');
             }
         }
     });

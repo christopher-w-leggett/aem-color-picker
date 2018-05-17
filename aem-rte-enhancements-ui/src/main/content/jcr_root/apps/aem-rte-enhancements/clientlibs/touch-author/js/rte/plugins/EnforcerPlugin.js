@@ -4,23 +4,22 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
 (function(CUI, $){
     "use strict";
 
-    var GROUP = 'colors';
+    var GROUP = 'enforcer';
 
-    RTEExt.rte.plugins.ColorsPlugin = new Class({
-        toString: 'ColorsPlugin',
+    RTEExt.rte.plugins.EnforcerPlugin = new Class({
+        toString: 'EnforcerPlugin',
 
         extend: RTEExt.rte.plugins.FeatureBasedPlugin,
 
         _initFeatures: function(editorKernel, pluginId){
             this.features = [
-                new RTEExt.rte.features.TextColor(editorKernel, this),
-                new RTEExt.rte.features.TextHighlight(editorKernel, this)
+                new RTEExt.rte.features.EnforceMarkup(editorKernel, this)
             ];
         }
     });
 
     //register plugin
     CUI.rte.plugins.PluginRegistry.register(
-        GROUP, RTEExt.rte.plugins.ColorsPlugin
+        GROUP, RTEExt.rte.plugins.EnforcerPlugin
     );
 })(window.CUI, window.jQuery);

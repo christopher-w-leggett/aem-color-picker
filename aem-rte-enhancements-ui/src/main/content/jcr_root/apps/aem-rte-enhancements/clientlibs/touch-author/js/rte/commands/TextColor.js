@@ -1,6 +1,14 @@
 RTEExt = window.RTEExt || {};
 RTEExt.rte = RTEExt.rte || {};
 RTEExt.rte.commands = RTEExt.rte.commands || {};
+//TODO: Don't allow nested spans.
+//TODO: Change so color isn't applied to anything other then injected span tags.  There is issue where converting between p, h1, ul, etc. is removing coloring.
+/*
+TODO:
+
+Current thought is to create an object that can "format" the selection content.  We might also want a "selection" object
+that will take the AEM selection/root node to come up with its own formatting "selection".
+*/
 (function(CUI){
     "use strict";
 

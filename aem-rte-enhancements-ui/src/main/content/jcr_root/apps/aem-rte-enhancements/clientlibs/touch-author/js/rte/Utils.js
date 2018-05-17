@@ -409,6 +409,28 @@ RTEExt.rte.Utils = (function(CUI){
         return commonAncestor;
     }
 
+    function convertTagName(node, tagName){
+        var newNode,
+            i;
+
+        if(node.tagName && tagName && node.tagName.toLowerCase() !== tagName){
+            //convert tag
+            newNode = document.createElement(tagName);
+            for(i = 0; i < node.attributes.length; i++){
+                newNode.setAttribute(node.attributes[i].name, node.attributes[i].value);
+            }
+            while(node.firstChild){
+                newNode.appendChild(node.firstChild);
+            }
+            node.parentNode.insertBefore(newNode, node);
+            node.parentNode.removeChild(node);
+
+            return newNode;
+        }else{
+            return node;
+        }
+    }
+
     return {
         getLeftDominantParents: getLeftDominantParents,
         getRightDominantParents: getRightDominantParents,
@@ -425,6 +447,7 @@ RTEExt.rte.Utils = (function(CUI){
         findAncestorTag: findAncestorTag,
         getCommonAncestor: getCommonAncestor,
         canUnwrap: canUnwrap,
-        unwrap: unwrap
+        unwrap: unwrap,
+        convertTagName: convertTagName
     };
 })(window.CUI);
