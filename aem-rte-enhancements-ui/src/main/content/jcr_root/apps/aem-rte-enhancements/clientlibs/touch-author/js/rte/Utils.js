@@ -1,6 +1,6 @@
-ColorPicker = window.ColorPicker || {};
-ColorPicker.rte = ColorPicker.rte || {};
-ColorPicker.rte.Utils = (function(CUI){
+RTEExt = window.RTEExt || {};
+RTEExt.rte = RTEExt.rte || {};
+RTEExt.rte.Utils = (function(CUI){
     "use strict";
 
     /**
@@ -367,7 +367,7 @@ ColorPicker.rte.Utils = (function(CUI){
 
     function findAncestorTag(node, tagName, rootNode){
         var ancestor = null,
-            ancestors = ColorPicker.rte.Utils.getAncestors(node, rootNode),
+            ancestors = RTEExt.rte.Utils.getAncestors(node, rootNode),
             i = ancestors.length - 1;
 
         while(ancestor === null && i >= 0){

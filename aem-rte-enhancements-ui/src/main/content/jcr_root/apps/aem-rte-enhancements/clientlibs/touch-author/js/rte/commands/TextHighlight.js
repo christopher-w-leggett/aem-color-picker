@@ -1,6 +1,6 @@
-ColorPicker = window.ColorPicker || {};
-ColorPicker.rte = ColorPicker.rte || {};
-ColorPicker.rte.commands = ColorPicker.rte.commands || {};
+RTEExt = window.RTEExt || {};
+RTEExt.rte = RTEExt.rte || {};
+RTEExt.rte.commands = RTEExt.rte.commands || {};
 (function(CUI){
     "use strict";
 
@@ -12,7 +12,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
             'text': 'plugins.' + GROUP + '.' + COMMAND_NAME + '.text'
         };
 
-    ColorPicker.rte.commands.TextHighlight = new Class({
+    RTEExt.rte.commands.TextHighlight = new Class({
         toString: 'TextHighlight',
 
         extend: CUI.rte.commands.Command,
@@ -40,9 +40,9 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
         },
 
         execute: function(execDef){
-            if(!ColorPicker.rte.Utils.isRangeSelection(execDef.selection)){
+            if(!RTEExt.rte.Utils.isRangeSelection(execDef.selection)){
                 this.highlightCursorSelection(execDef);
-            } else if(ColorPicker.rte.Utils.isFullSelection(execDef.selection, execDef.editContext.root)){
+            } else if(RTEExt.rte.Utils.isFullSelection(execDef.selection, execDef.editContext.root)){
                 this.highlightFullSelection(execDef);
             } else {
                 this.highlightRangeSelection(execDef);
@@ -50,7 +50,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
         },
 
         highlightCursorSelection: function(execDef){
-            var ancestorMark = ColorPicker.rte.Utils.findAncestorTag(
+            var ancestorMark = RTEExt.rte.Utils.findAncestorTag(
                 execDef.selection.startNode, 'mark', execDef.editContext.root
             );
             if(ancestorMark !== null){
@@ -59,10 +59,10 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
         },
 
         highlightFullSelection: function(execDef){
-            var dominantMark = ColorPicker.rte.Utils.getSharedDominantParent(
+            var dominantMark = RTEExt.rte.Utils.getSharedDominantParent(
                     execDef.selection.startNode, execDef.selection.endNode, execDef.editContext.root, 'mark'
                 ),
-                sharedParent = ColorPicker.rte.Utils.getSharedParent(
+                sharedParent = RTEExt.rte.Utils.getSharedParent(
                     execDef.selection.startNode, execDef.selection.endNode, execDef.editContext.root
                 );
             if(dominantMark !== null){
@@ -75,7 +75,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
         },
 
         highlightRangeSelection: function(execDef){
-            var actingRoot = ColorPicker.rte.Utils.getCommonAncestor(execDef.selection, execDef.editContext.root),
+            var actingRoot = RTEExt.rte.Utils.getCommonAncestor(execDef.selection, execDef.editContext.root),
                 startDominantParents,
                 startNode,
                 endDominantParents,
@@ -86,7 +86,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
 
             //determine start node
             if(execDef.selection.startNode.nodeType !== 3 || execDef.selection.startOffset === 0){
-                startDominantParents = ColorPicker.rte.Utils.getLeftDominantParents(
+                startDominantParents = RTEExt.rte.Utils.getLeftDominantParents(
                     execDef.selection.startNode, actingRoot
                 );
                 if(startDominantParents.length){
@@ -101,7 +101,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
             //determine end node
             if(execDef.selection.endNode.nodeType !== 3
                 || execDef.selection.endOffset === execDef.selection.endNode.length){
-                endDominantParents = ColorPicker.rte.Utils.getRightDominantParents(
+                endDominantParents = RTEExt.rte.Utils.getRightDominantParents(
                     execDef.selection.endNode, actingRoot
                 );
                 if(endDominantParents.length){
@@ -125,7 +125,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
             while(curNode){
                 //determine next node
                 if(curNode !== endNode){
-                    nextNode = ColorPicker.rte.Utils.getNextRangeSibling(curNode, endNodeParents);
+                    nextNode = RTEExt.rte.Utils.getNextRangeSibling(curNode, endNodeParents);
                 } else {
                     //stop as we are at the end
                     nextNode = null;
@@ -216,7 +216,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
                 i;
 
             //first try to strip marks completely.
-            ColorPicker.rte.Utils.stripDescendantStyle(node, this.stripDef);
+            RTEExt.rte.Utils.stripDescendantStyle(node, this.stripDef);
 
             //convert any remaining marks
             marks = node.querySelectorAll('mark');
@@ -236,8 +236,8 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
             }
 
             //strip mark tag.
-            if(ColorPicker.rte.Utils.canUnwrap(markNode, /mark/i)){
-                ColorPicker.rte.Utils.unwrap(markNode);
+            if(RTEExt.rte.Utils.canUnwrap(markNode, /mark/i)){
+                RTEExt.rte.Utils.unwrap(markNode);
             }else{
                 //convert mark into span
                 span = document.createElement('span');
@@ -253,12 +253,12 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
         }
     });
 
-    ColorPicker.rte.commands.TextHighlight.COMMAND_NAME = COMMAND_NAME;
-    ColorPicker.rte.commands.TextHighlight.COMMAND_REF = COMMAND_REF;
-    ColorPicker.rte.commands.TextHighlight.TOOLTIP_KEYS = TOOLTIP_KEYS;
+    RTEExt.rte.commands.TextHighlight.COMMAND_NAME = COMMAND_NAME;
+    RTEExt.rte.commands.TextHighlight.COMMAND_REF = COMMAND_REF;
+    RTEExt.rte.commands.TextHighlight.TOOLTIP_KEYS = TOOLTIP_KEYS;
 
     //register command
     CUI.rte.commands.CommandRegistry.register(
-        COMMAND_NAME, ColorPicker.rte.commands.TextHighlight
+        COMMAND_NAME, RTEExt.rte.commands.TextHighlight
     );
 })(window.CUI);

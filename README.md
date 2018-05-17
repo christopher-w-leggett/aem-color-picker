@@ -1,17 +1,15 @@
-# AEM Color Picker
-The AEM Color Picker project provides the ability for authors to color and highlight textual content within the AEM 
-rich text editor.  This functionality is exposed through a new `colors` RTE plugin that consists of a `text-color` 
-feature for coloring text and a `text-highlight` feature for highlighting text.
+# AEM RTE Enhancements
+The AEM RTE Enhancements project aims to provide additional features to the AEM rich text field.
 
 ## Support
 
-| AEM Version | Color Picker Version |
+| AEM Version | RTE Enhancements Version |
 | --- | --- |
 | 6.4 | v1.0.0-SNAPSHOT |
 | 6.3 | v1.0.0-SNAPSHOT |
 
-## Colors Rich Text Plugin
-The `colors` RTE plugin allows authors to apply coloring and highlighting to rich text content as needed.
+## Colors Plugin
+The `colors` plugin allows authors to apply coloring and highlighting to rich text content as needed.
 This plugin uses the `Coral.ColorInput` form field to facilitate the selection of a color and all configuration options 
 for this form field are available for customization.
 

@@ -1,15 +1,15 @@
-ColorPicker = window.ColorPicker || {};
-ColorPicker.rte = ColorPicker.rte || {};
-ColorPicker.rte.features = ColorPicker.rte.features || {};
+RTEExt = window.RTEExt || {};
+RTEExt.rte = RTEExt.rte || {};
+RTEExt.rte.features = RTEExt.rte.features || {};
 (function(CUI){
     "use strict";
 
     var NAME = 'text-highlight';
 
-    ColorPicker.rte.features.TextHighlight = new Class({
+    RTEExt.rte.features.TextHighlight = new Class({
         toString: 'TextHighlight',
 
-        extend: ColorPicker.rte.features.Feature,
+        extend: RTEExt.rte.features.Feature,
 
         ui: null,
 
@@ -22,14 +22,14 @@ ColorPicker.rte.features = ColorPicker.rte.features || {};
         },
 
         getCommands: function(){
-            return [ColorPicker.rte.commands.TextHighlight.COMMAND_NAME];
+            return [RTEExt.rte.commands.TextHighlight.COMMAND_NAME];
         },
 
         initializeUI: function(tbGenerator, options){
             var plugins = CUI.rte.plugins;
 
-            tbGenerator.registerIcon(ColorPicker.rte.commands.TextHighlight.COMMAND_REF, 'textEdit');
-            tbGenerator.registerAdditionalClasses(ColorPicker.rte.commands.TextHighlight.COMMAND_REF, 'rte--trigger');
+            tbGenerator.registerIcon(RTEExt.rte.commands.TextHighlight.COMMAND_REF, 'textEdit');
+            tbGenerator.registerAdditionalClasses(RTEExt.rte.commands.TextHighlight.COMMAND_REF, 'rte--trigger');
 
             this.ui = tbGenerator.createElement(this.getName(), this.plugin, true, this.config.tooltip);
             tbGenerator.addElement(this.plugin.pluginId, plugins.Plugin.SORT_EDIT, this.ui, 110);
@@ -47,13 +47,13 @@ ColorPicker.rte.features = ColorPicker.rte.features || {};
                 'tooltip': {}
             };
             defaultConfig.tooltip = {
-                'title': CUI.rte.Utils.i18n(ColorPicker.rte.commands.TextHighlight.TOOLTIP_KEYS.title),
-                'text': CUI.rte.Utils.i18n(ColorPicker.rte.commands.TextHighlight.TOOLTIP_KEYS.text)
+                'title': CUI.rte.Utils.i18n(RTEExt.rte.commands.TextHighlight.TOOLTIP_KEYS.title),
+                'text': CUI.rte.Utils.i18n(RTEExt.rte.commands.TextHighlight.TOOLTIP_KEYS.text)
             };
-            if(defaultConfig.tooltip.title === ColorPicker.rte.commands.TextHighlight.TOOLTIP_KEYS.title){
+            if(defaultConfig.tooltip.title === RTEExt.rte.commands.TextHighlight.TOOLTIP_KEYS.title){
                 defaultConfig.tooltip.title = 'Text Highlight';
             }
-            if(defaultConfig.tooltip.text === ColorPicker.rte.commands.TextHighlight.TOOLTIP_KEYS.text){
+            if(defaultConfig.tooltip.text === RTEExt.rte.commands.TextHighlight.TOOLTIP_KEYS.text){
                 defaultConfig.tooltip.text = 'Text Highlight';
             }
             CUI.rte.Utils.applyDefaults(config, defaultConfig);
@@ -75,18 +75,18 @@ ColorPicker.rte.features = ColorPicker.rte.features || {};
                 if(!this.dialog || dialogManager.mustRecreate(this.dialog)){
                     textHighlightConfig.execute = function(value){
                         CUI.rte.Selection.restoreNativeSelection(editContext, this.savedNativeSelection);
-                        editorKernel.relayCmd(ColorPicker.rte.commands.TextHighlight.COMMAND_NAME, value);
+                        editorKernel.relayCmd(RTEExt.rte.commands.TextHighlight.COMMAND_NAME, value);
                     };
                     textHighlightConfig.parameters = {
-                        'command': ColorPicker.rte.commands.TextHighlight.COMMAND_REF
+                        'command': RTEExt.rte.commands.TextHighlight.COMMAND_REF
                     };
 
-                    this.dialog = new ColorPicker.rte.ui.dialogs.TextHighlight();
+                    this.dialog = new RTEExt.rte.ui.dialogs.TextHighlight();
                     this.dialog.attach(textHighlightConfig, $container, editorKernel);
                 }
 
                 dialogManager.prepareShow(this.dialog);
-                this.dialog.setColor(selectionDef ? ColorPicker.rte.Utils.getComputedStyle(
+                this.dialog.setColor(selectionDef ? RTEExt.rte.Utils.getComputedStyle(
                     selectionDef.selection, {tagName: 'mark', style: 'background-color'}, editContext.root
                 ) : '');
                 this.savedNativeSelection = CUI.rte.Selection.saveNativeSelection(editContext);
@@ -99,12 +99,12 @@ ColorPicker.rte.features = ColorPicker.rte.features || {};
                 dominantMark = null,
                 i;
 
-            if(ColorPicker.rte.Utils.isFullSelection(selDef.selection, selDef.editContext.root)){
-                dominantMark = ColorPicker.rte.Utils.getSharedDominantParent(
+            if(RTEExt.rte.Utils.isFullSelection(selDef.selection, selDef.editContext.root)){
+                dominantMark = RTEExt.rte.Utils.getSharedDominantParent(
                     selDef.selection.startNode, selDef.selection.endNode, selDef.editContext.root, 'mark'
                 );
             } else if(selDef.selection.startNode && !selDef.selection.endNode){
-                dominantMark = ColorPicker.rte.Utils.findAncestorTag(
+                dominantMark = RTEExt.rte.Utils.findAncestorTag(
                     selDef.selection.startNode, 'mark', selDef.editContext.root
                 );
             }

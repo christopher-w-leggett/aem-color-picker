@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.icfolson.aem.color.picker</groupId>
-    <artifactId>aem-color-picker</artifactId>
+    <groupId>com.icfolson.aem.rte.enhancements</groupId>
+    <artifactId>aem-rte-enhancements</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
-    <name>AEM Color Picker</name>
+    <name>AEM RTE Enhancements</name>
 
     <modules>
-        <module>aem-color-picker-ui</module>
+        <module>aem-rte-enhancements-ui</module>
     </modules>
 
     <properties>

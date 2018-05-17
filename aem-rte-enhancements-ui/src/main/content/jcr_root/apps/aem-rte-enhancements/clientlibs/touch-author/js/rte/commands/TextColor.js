@@ -1,6 +1,6 @@
-ColorPicker = window.ColorPicker || {};
-ColorPicker.rte = ColorPicker.rte || {};
-ColorPicker.rte.commands = ColorPicker.rte.commands || {};
+RTEExt = window.RTEExt || {};
+RTEExt.rte = RTEExt.rte || {};
+RTEExt.rte.commands = RTEExt.rte.commands || {};
 (function(CUI){
     "use strict";
 
@@ -12,7 +12,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
             'text': 'plugins.' + GROUP + '.' + COMMAND_NAME + '.text'
         };
 
-    ColorPicker.rte.commands.TextColor = new Class({
+    RTEExt.rte.commands.TextColor = new Class({
         toString: 'TextColor',
 
         extend: CUI.rte.commands.Command,
@@ -39,9 +39,9 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
         },
 
         execute: function(execDef){
-            if(!ColorPicker.rte.Utils.isRangeSelection(execDef.selection)){
+            if(!RTEExt.rte.Utils.isRangeSelection(execDef.selection)){
                 this.colorCursorSelection(execDef);
-            } else if(ColorPicker.rte.Utils.isFullSelection(execDef.selection, execDef.editContext.root)){
+            } else if(RTEExt.rte.Utils.isFullSelection(execDef.selection, execDef.editContext.root)){
                 this.colorFullSelection(execDef);
             } else {
                 this.colorRangeSelection(execDef);
@@ -50,7 +50,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
 
         colorCursorSelection: function(execDef){
             var curNode = execDef.selection.startNode,
-                nodeToColor = ColorPicker.rte.Utils.getClosestStyledNode(
+                nodeToColor = RTEExt.rte.Utils.getClosestStyledNode(
                     curNode, {style: 'color'}, execDef.editContext.root
                 );
             while(nodeToColor === null && curNode !== execDef.editContext.root){
@@ -61,24 +61,24 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
             }
 
             this.colorNode(nodeToColor, execDef.value, execDef.editContext.root);
-            if(ColorPicker.rte.Utils.canUnwrap(nodeToColor, /span/i)){
-                ColorPicker.rte.Utils.unwrap(nodeToColor);
+            if(RTEExt.rte.Utils.canUnwrap(nodeToColor, /span/i)){
+                RTEExt.rte.Utils.unwrap(nodeToColor);
             }
         },
 
         colorFullSelection: function(execDef){
-            var sharedDominantParent = ColorPicker.rte.Utils.getSharedDominantParent(
+            var sharedDominantParent = RTEExt.rte.Utils.getSharedDominantParent(
                 execDef.selection.startNode, execDef.selection.endNode, execDef.editContext.root
             );
-            ColorPicker.rte.Utils.stripDescendantStyle(sharedDominantParent, this.stripDef);
+            RTEExt.rte.Utils.stripDescendantStyle(sharedDominantParent, this.stripDef);
             this.colorNode(sharedDominantParent, execDef.value, execDef.editContext.root);
-            if(ColorPicker.rte.Utils.canUnwrap(sharedDominantParent, /span/i)){
-                ColorPicker.rte.Utils.unwrap(sharedDominantParent);
+            if(RTEExt.rte.Utils.canUnwrap(sharedDominantParent, /span/i)){
+                RTEExt.rte.Utils.unwrap(sharedDominantParent);
             }
         },
 
         colorRangeSelection: function(execDef){
-            var actingRoot = ColorPicker.rte.Utils.getCommonAncestor(execDef.selection, execDef.editContext.root),
+            var actingRoot = RTEExt.rte.Utils.getCommonAncestor(execDef.selection, execDef.editContext.root),
                 startDominantParents,
                 startNode,
                 endDominantParents,
@@ -89,7 +89,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
 
             //determine start node
             if(execDef.selection.startNode.nodeType !== 3 || execDef.selection.startOffset === 0){
-                startDominantParents = ColorPicker.rte.Utils.getLeftDominantParents(
+                startDominantParents = RTEExt.rte.Utils.getLeftDominantParents(
                     execDef.selection.startNode, actingRoot
                 );
                 if(startDominantParents.length){
@@ -104,7 +104,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
             //determine end node
             if(execDef.selection.endNode.nodeType !== 3
                 || execDef.selection.endOffset === execDef.selection.endNode.length){
-                endDominantParents = ColorPicker.rte.Utils.getRightDominantParents(
+                endDominantParents = RTEExt.rte.Utils.getRightDominantParents(
                     execDef.selection.endNode, actingRoot
                 );
                 if(endDominantParents.length){
@@ -128,7 +128,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
             while(curNode){
                 //determine next node
                 if(curNode !== endNode){
-                    nextNode = ColorPicker.rte.Utils.getNextRangeSibling(curNode, endNodeParents);
+                    nextNode = RTEExt.rte.Utils.getNextRangeSibling(curNode, endNodeParents);
                 } else {
                     //stop as we are at the end
                     nextNode = null;
@@ -143,10 +143,10 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
                         execDef.value
                     );
                 } else {
-                    ColorPicker.rte.Utils.stripDescendantStyle(curNode, this.stripDef);
+                    RTEExt.rte.Utils.stripDescendantStyle(curNode, this.stripDef);
                     this.colorNode(curNode, execDef.value, execDef.editContext.root);
-                    if(ColorPicker.rte.Utils.canUnwrap(curNode, /span/i)){
-                        ColorPicker.rte.Utils.unwrap(curNode);
+                    if(RTEExt.rte.Utils.canUnwrap(curNode, /span/i)){
+                        RTEExt.rte.Utils.unwrap(curNode);
                     }
                 }
 
@@ -163,7 +163,7 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
 
             if(node && node.style){
                 //determine if a parent node contains a color.
-                coloredParent = ColorPicker.rte.Utils.getClosestStyledNode(
+                coloredParent = RTEExt.rte.Utils.getClosestStyledNode(
                     node.parentNode, {style: 'color'}, rootNode
                 );
 
@@ -235,12 +235,12 @@ ColorPicker.rte.commands = ColorPicker.rte.commands || {};
         }
     });
 
-    ColorPicker.rte.commands.TextColor.COMMAND_NAME = COMMAND_NAME;
-    ColorPicker.rte.commands.TextColor.COMMAND_REF = COMMAND_REF;
-    ColorPicker.rte.commands.TextColor.TOOLTIP_KEYS = TOOLTIP_KEYS;
+    RTEExt.rte.commands.TextColor.COMMAND_NAME = COMMAND_NAME;
+    RTEExt.rte.commands.TextColor.COMMAND_REF = COMMAND_REF;
+    RTEExt.rte.commands.TextColor.TOOLTIP_KEYS = TOOLTIP_KEYS;
 
     //register command
     CUI.rte.commands.CommandRegistry.register(
-        COMMAND_NAME, ColorPicker.rte.commands.TextColor
+        COMMAND_NAME, RTEExt.rte.commands.TextColor
     );
 })(window.CUI);

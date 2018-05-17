@@ -1,12 +1,12 @@
-ColorPicker = window.ColorPicker || {};
-ColorPicker.rte = ColorPicker.rte || {};
-ColorPicker.rte.plugins = ColorPicker.rte.plugins || {};
+RTEExt = window.RTEExt || {};
+RTEExt.rte = RTEExt.rte || {};
+RTEExt.rte.plugins = RTEExt.rte.plugins || {};
 (function(CUI, $){
     "use strict";
 
     var GROUP = 'colors';
 
-    ColorPicker.rte.plugins.ColorsPlugin = new Class({
+    RTEExt.rte.plugins.ColorsPlugin = new Class({
         toString: 'ColorsPlugin',
 
         extend: CUI.rte.plugins.Plugin,
@@ -16,8 +16,8 @@ ColorPicker.rte.plugins = ColorPicker.rte.plugins || {};
         construct: function (editorKernel, pluginId) {
             this._init(editorKernel, pluginId);
             this.features = [
-                new ColorPicker.rte.features.TextColor(editorKernel, this),
-                new ColorPicker.rte.features.TextHighlight(editorKernel, this)
+                new RTEExt.rte.features.TextColor(editorKernel, this),
+                new RTEExt.rte.features.TextHighlight(editorKernel, this)
             ];
         },
 
@@ -81,6 +81,6 @@ ColorPicker.rte.plugins = ColorPicker.rte.plugins || {};
 
     //register plugin
     CUI.rte.plugins.PluginRegistry.register(
-        GROUP, ColorPicker.rte.plugins.ColorsPlugin
+        GROUP, RTEExt.rte.plugins.ColorsPlugin
     );
 })(window.CUI, window.jQuery);

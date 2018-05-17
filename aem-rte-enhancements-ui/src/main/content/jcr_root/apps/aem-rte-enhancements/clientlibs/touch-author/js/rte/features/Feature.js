@@ -1,10 +1,10 @@
-ColorPicker = window.ColorPicker || {};
-ColorPicker.rte = ColorPicker.rte || {};
-ColorPicker.rte.features = ColorPicker.rte.features || {};
+RTEExt = window.RTEExt || {};
+RTEExt.rte = RTEExt.rte || {};
+RTEExt.rte.features = RTEExt.rte.features || {};
 (function(CUI){
     "use strict";
 
-    ColorPicker.rte.features.Feature = new Class({
+    RTEExt.rte.features.Feature = new Class({
         toString: 'Feature',
 
         editorKernel: null,

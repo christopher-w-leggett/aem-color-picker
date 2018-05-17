@@ -1,14 +1,14 @@
-ColorPicker = window.ColorPicker || {};
-ColorPicker.rte = ColorPicker.rte || {};
-ColorPicker.rte.ui = ColorPicker.rte.ui || {};
-ColorPicker.rte.ui.dialogs = ColorPicker.rte.ui.dialogs || {};
+RTEExt = window.RTEExt || {};
+RTEExt.rte = RTEExt.rte || {};
+RTEExt.rte.ui = RTEExt.rte.ui || {};
+RTEExt.rte.ui.dialogs = RTEExt.rte.ui.dialogs || {};
 (function(CUI){
     "use strict";
 
-    var DATA_TYPE = 'text-highlight';
+    var DATA_TYPE = 'text-color';
 
-    ColorPicker.rte.ui.dialogs.TextHighlight = new Class({
-        toString: 'TextHighlight',
+    RTEExt.rte.ui.dialogs.TextColor = new Class({
+        toString: 'TextColor',
 
         extend: CUI.rte.ui.cui.AbstractBaseDialog,
 
