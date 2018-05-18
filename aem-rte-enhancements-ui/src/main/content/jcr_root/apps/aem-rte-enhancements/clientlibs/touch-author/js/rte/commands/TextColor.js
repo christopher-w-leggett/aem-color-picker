@@ -3,6 +3,7 @@ RTEExt.rte = RTEExt.rte || {};
 RTEExt.rte.commands = RTEExt.rte.commands || {};
 //TODO: Don't allow nested spans.
 //TODO: Change so color isn't applied to anything other then injected span tags.  There is issue where converting between p, h1, ul, etc. is removing coloring.
+//TODO: Along with only styling injected span tags, also need to check for any span tag with _rte attributes and if found, nest a span within it.  AEM will remove these spans and remove any color.
 /*
 TODO:
 

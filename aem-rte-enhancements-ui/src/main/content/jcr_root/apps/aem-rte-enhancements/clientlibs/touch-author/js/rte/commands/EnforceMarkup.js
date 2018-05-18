@@ -93,7 +93,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                     //enforce attributes
                     for(i = enforcedNode.attributes.length - 1; i >= 0; i--){
                         attributeName = enforcedNode.attributes[i].nodeName;
-                        if(attributeName !== 'style' && !attributeName.startsWith('_rte_')){
+                        if(attributeName !== 'style' && !attributeName.startsWith('_rte')){
                             attributePolicy = this.getAttributePolicy(attributeName, activePolicy);
                             if(attributePolicy.values && attributePolicy.values.length){
                                 attributeValues = attributePolicy.split
@@ -151,11 +151,11 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         },
 
         getStylePolicy: function(style, activePolicy){
-            return activePolicy.stylePolicies[style] || { 'policy': 'deny' };
+            return activePolicy.stylePolicies[style] || activePolicy.stylePolicies['+'] || { 'policy': 'deny' };
         },
 
         getAttributePolicy: function(attribute, activePolicy){
-            return activePolicy.attributePolicies[attribute] || { 'policy': 'deny' };
+            return activePolicy.attributePolicies[attribute] || activePolicy.attributePolicies['+'] || { 'policy': 'deny' };
         }
     });
 

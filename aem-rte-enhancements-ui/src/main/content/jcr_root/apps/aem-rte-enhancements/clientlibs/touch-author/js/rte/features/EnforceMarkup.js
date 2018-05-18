@@ -58,7 +58,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                     }
                 }
             }
-            TODO: Need to review all OOTB RTE plugins and make a sensible default that will support them.
+            TODO: Need to finish reviewing table plugin which is broken in 6.4.  Need to see if it works in 6.3
             */
             var defaultConfig = {
                 'tagPolicies': {
@@ -66,6 +66,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'policy': 'allow',
                         'stylePolicies': {
                             'margin-left': {
+                                'policy': 'allow'
+                            },
+                            'text-align': {
                                 'policy': 'allow'
                             }
                         }
@@ -75,6 +78,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'stylePolicies': {
                             'margin-left': {
                                 'policy': 'allow'
+                            },
+                            'text-align': {
+                                'policy': 'allow'
                             }
                         }
                     },
@@ -82,6 +88,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'policy': 'allow',
                         'stylePolicies': {
                             'margin-left': {
+                                'policy': 'allow'
+                            },
+                            'text-align': {
                                 'policy': 'allow'
                             }
                         }
@@ -91,6 +100,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'stylePolicies': {
                             'margin-left': {
                                 'policy': 'allow'
+                            },
+                            'text-align': {
+                                'policy': 'allow'
                             }
                         }
                     },
@@ -98,6 +110,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'policy': 'allow',
                         'stylePolicies': {
                             'margin-left': {
+                                'policy': 'allow'
+                            },
+                            'text-align': {
                                 'policy': 'allow'
                             }
                         }
@@ -107,6 +122,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'stylePolicies': {
                             'margin-left': {
                                 'policy': 'allow'
+                            },
+                            'text-align': {
+                                'policy': 'allow'
                             }
                         }
                     },
@@ -114,6 +132,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'policy': 'allow',
                         'stylePolicies': {
                             'margin-left': {
+                                'policy': 'allow'
+                            },
+                            'text-align': {
                                 'policy': 'allow'
                             }
                         }
@@ -123,6 +144,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'stylePolicies': {
                             'margin-left': {
                                 'policy': 'allow'
+                            },
+                            'text-align': {
+                                'policy': 'allow'
                             }
                         }
                     },
@@ -131,6 +155,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'stylePolicies': {
                             'margin-left': {
                                 'policy': 'allow'
+                            },
+                            'text-align': {
+                                'policy': 'allow'
                             }
                         }
                     },
@@ -138,6 +165,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'policy': 'allow',
                         'stylePolicies': {
                             'margin-left': {
+                                'policy': 'allow'
+                            },
+                            'text-align': {
                                 'policy': 'allow'
                             }
                         }
@@ -149,6 +179,20 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'policy': 'allow',
                         'stylePolicies': {
                             'color': {
+                                'policy': 'allow'
+                            },
+                            'border-bottom-width': {
+                                'policy': 'allow'
+                            },
+                            'border-bottom-style': {
+                                'policy': 'allow'
+                            },
+                            'border-bottom-color': {
+                                'policy': 'allow'
+                            }
+                        },
+                        'attributePolicies': {
+                            'class': {
                                 'policy': 'allow'
                             }
                         }
@@ -173,6 +217,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                             },
                             'title': {
                                 'policy': 'allow'
+                            },
+                            'id': {
+                                'policy': 'allow'
                             }
                         }
                     },
@@ -183,13 +230,103 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'policy': 'allow'
                     },
                     'li': {
-                        'policy': 'allow'
+                        'policy': 'allow',
+                        'stylePolicies': {
+                            'text-align': {
+                                'policy': 'allow'
+                            }
+                        }
                     },
                     'b': {
                         'policy': 'allow'
                     },
                     'i': {
                         'policy': 'allow'
+                    },
+                    'u': {
+                        'policy': 'allow'
+                    },
+                    'sub': {
+                        'policy': 'allow'
+                    },
+                    'sup': {
+                        'policy': 'allow'
+                    },
+                    'img': {
+                        'policy': 'allow',
+                        'stylePolicies': {
+                            '+': {
+                                'policy': 'allow'
+                            }
+                        },
+                        'attributePolicies': {
+                            'src': {
+                                'policy': 'allow'
+                            },
+                            'alt': {
+                                'policy': 'allow'
+                            }
+                        }
+                    },
+                    'table': {
+                        'policy': 'allow',
+                        'attributePolicies': {
+                            'cellpadding': {
+                                'policy': 'allow'
+                            },
+                            'cellspacing': {
+                                'policy': 'allow'
+                            },
+                            'border': {
+                                'policy': 'allow'
+                            },
+                            'width': {
+                                'policy': 'allow'
+                            },
+                            'height': {
+                                'policy': 'allow'
+                            }
+                        }
+                    },
+                    'caption': {
+                        'policy': 'allow'
+                    },
+                    'tbody': {
+                        'policy': 'allow'
+                    },
+                    'tr': {
+                        'policy': 'allow'
+                    },
+                    'th': {
+                        'policy': 'allow',
+                        'attributePolicies': {
+                            'scope': {
+                                'policy': 'allow'
+                            },
+                            'colspan': {
+                                'policy': 'allow'
+                            },
+                            'rowspan': {
+                                'policy': 'allow'
+                            },
+                            'class': {
+                                'policy': 'allow'
+                            }
+                        }
+                    },
+                    'td': {
+                        'policy': 'allow',
+                        'attributePolicies': {
+                            'colspan': {
+                                'policy': 'allow'
+                            },
+                            'rowspan': {
+                                'policy': 'allow'
+                            },
+                            'class': {
+                                'policy': 'allow'
+                            }
+                        }
                     }
                 }
             };
