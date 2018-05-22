@@ -259,8 +259,8 @@ RTEExt.rte.Utils = (function(CUI){
     /**
      * Determines if provided node is a specific tag.
      */
-    function isTag(node, tagNameRegex){
-        return node.tagName && tagNameRegex.test(node.tagName);
+    function isTag(node, tagName){
+        return node.tagName && node.tagName.toLowerCase() === tagName;
     }
 
     /**
@@ -283,8 +283,8 @@ RTEExt.rte.Utils = (function(CUI){
     /**
      * Determines if the node can be unwrapped.  This is true if the node is a coloring node.
      */
-    function canUnwrap(node, tagNameRegex){
-        return isTag(node, tagNameRegex) && (hasNoAttributes(node) || hasOnlyEmptyStyleAttribute(node));
+    function canUnwrap(node, tagName){
+        return isTag(node, tagName) && (hasNoAttributes(node) || hasOnlyEmptyStyleAttribute(node));
     }
 
     /**
@@ -330,24 +330,6 @@ RTEExt.rte.Utils = (function(CUI){
         }
     }
 
-    function getNextRangeSibling(node, endTree){
-        var curNode = node,
-            nextSibling = curNode.nextSibling;
-
-        //move to next conceptual sibling which could be our parents sibling.
-        while(!nextSibling && !endTree.includes(curNode)){
-            curNode = curNode.parentNode;
-            nextSibling = curNode.nextSibling;
-        }
-
-        //if next sibling represents the end tree, move down
-        while(endTree.includes(nextSibling)){
-            nextSibling = nextSibling.firstChild;
-        }
-
-        return nextSibling;
-    }
-
     function getAncestors(node, rootNode){
         var ancestors = [],
             curNode;
@@ -368,11 +350,20 @@ RTEExt.rte.Utils = (function(CUI){
     function findAncestorTag(node, tagName, rootNode){
         var ancestor = null,
             ancestors = RTEExt.rte.Utils.getAncestors(node, rootNode),
-            i = ancestors.length - 1;
+            i = ancestors.length - 1,
+            hasRteAttribute,
+            j;
 
         while(ancestor === null && i >= 0){
             if(ancestors[i].tagName && ancestors[i].tagName.toLowerCase() === tagName){
-                ancestor = ancestors[i];
+                hasRteAttribute = false;
+                for(j = 0; j < ancestors[i].attributes.length && !hasRteAttribute; j++){
+                    hasRteAttribute = hasRteAttribute || ancestors[i].attributes[j].nodeName.startsWith('_rte');
+                }
+
+                if(!hasRteAttribute){
+                    ancestor = ancestors[i];
+                }
             }
 
             i--;
@@ -431,6 +422,20 @@ RTEExt.rte.Utils = (function(CUI){
         }
     }
 
+    function cloneNode(node){
+        var newNode = null,
+            i;
+
+        if(node.tagName){
+            newNode = document.createElement(node.tagName);
+            for(i = 0; i < node.attributes.length; i++){
+                newNode.setAttribute(node.attributes[i].name, node.attributes[i].value);
+            }
+        }
+
+        return newNode;
+    }
+
     return {
         getLeftDominantParents: getLeftDominantParents,
         getRightDominantParents: getRightDominantParents,
@@ -442,12 +447,12 @@ RTEExt.rte.Utils = (function(CUI){
         getSharedDominantParent: getSharedDominantParent,
         getSharedParent: getSharedParent,
         stripDescendantStyle: stripDescendantStyle,
-        getNextRangeSibling: getNextRangeSibling,
         getAncestors: getAncestors,
         findAncestorTag: findAncestorTag,
         getCommonAncestor: getCommonAncestor,
         canUnwrap: canUnwrap,
         unwrap: unwrap,
-        convertTagName: convertTagName
+        convertTagName: convertTagName,
+        cloneNode: cloneNode
     };
 })(window.CUI);

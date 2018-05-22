@@ -1,5 +1,6 @@
 #base=js
 rte/Utils.js
+rte/MarkupStyler.js
 
 rte/ui/dialogs/TextColor.js
 rte/ui/dialogs/TextHighlight.js
