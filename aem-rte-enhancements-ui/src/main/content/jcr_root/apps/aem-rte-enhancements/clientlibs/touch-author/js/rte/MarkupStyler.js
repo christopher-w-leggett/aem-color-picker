@@ -18,7 +18,6 @@ RTEExt.rte = RTEExt.rte || {};
             'h6',
             'blockquote',
             'pre',
-            'mark',
             'a',
             'ul',
             'ol',

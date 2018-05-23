@@ -202,6 +202,10 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'stylePolicies': {
                             'background-color': {
                                 'policy': 'allow'
+                            },
+                            'color': {
+                                'policy': 'allow',
+                                'values': ['inherit']
                             }
                         }
                     },

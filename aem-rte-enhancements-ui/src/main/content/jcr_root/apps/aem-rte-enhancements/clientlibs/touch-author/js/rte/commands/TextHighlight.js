@@ -30,7 +30,14 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         execute: function(execDef){
             if(RTEExt.rte.Utils.isRangeSelection(execDef.selection)){
                 var styler = new RTEExt.rte.MarkupStyler('mark');
-                styler.style(execDef.selection, {'background-color': execDef.value}, execDef.editContext.root);
+                styler.style(
+                    execDef.selection,
+                    {
+                        'background-color': execDef.value,
+                        'color': 'inherit'
+                    },
+                    execDef.editContext.root
+                );
             }
         }
     });
