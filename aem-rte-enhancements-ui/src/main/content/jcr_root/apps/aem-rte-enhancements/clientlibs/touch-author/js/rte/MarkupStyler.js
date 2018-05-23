@@ -104,6 +104,9 @@ RTEExt.rte = RTEExt.rte || {};
                 stripDef,
                 endTree
             );
+
+            //normalize nodes
+            this.normalizeStyles(actingRoot, styles);
         },
 
         styleRange(startNode, startOffset, endNode, endOffset, styles, stripDef, endTree){
@@ -364,6 +367,9 @@ RTEExt.rte = RTEExt.rte || {};
             }
         },
 
+        /**
+         * Applies provided styles to the node.
+         */
         styleNode: function(node, styles){
             var curStyle;
 
@@ -376,6 +382,9 @@ RTEExt.rte = RTEExt.rte || {};
             }
         },
 
+        /**
+         * Checks if provided node is a styling node that only contains at most the styles being applied.
+         */
         isStylingNode: function(node, styles){
             //a styling node shares the same styling tag name
             var stylingNode = node.tagName && node.tagName.toLowerCase() === this.stylingTagName,
@@ -397,6 +406,55 @@ RTEExt.rte = RTEExt.rte || {};
             }
 
             return stylingNode;
+        },
+
+        /**
+         * Determines if two nodes share the same styles.
+         */
+        sharesStyles: function(node1, node2){
+            var sameStyles = node1.style.length === node2.style.length,
+                i;
+
+            for(i = 0; i < node1.style.length && sameStyles; i++){
+                sameStyles = node1.style[node1.style[i]] === node2.style[node1.style[i]];
+            }
+
+            return sameStyles;
+        },
+
+        /**
+         * Normalizes tree structure by combining sibling nodes that share the same applicable styles.
+         */
+        normalizeStyles: function(node, styles){
+            var curNode = node.firstChild,
+                nextNode;
+
+            //normalize styling nodes.
+            while(curNode){
+                //merge next sibling until we can't
+                while(curNode.nextSibling
+                    && this.isStylingNode(curNode, styles)
+                    && this.isStylingNode(curNode.nextSibling, styles)
+                    && this.sharesStyles(curNode, curNode.nextSibling)){
+                    //merge siblings.
+                    while(curNode.nextSibling.firstChild){
+                        curNode.appendChild(curNode.nextSibling.firstChild);
+                    }
+                    curNode.parentNode.removeChild(curNode.nextSibling);
+                }
+
+                //move to next node, try to move down or across first
+                nextNode = curNode.firstChild || curNode.nextSibling;
+                //no next node, find first sibling of parent structure.  don't go beyond root node
+                while(!nextNode && curNode !== node && curNode.parentNode !== node){
+                    curNode = curNode.parentNode;
+                    nextNode = curNode.nextSibling;
+                }
+                curNode = nextNode;
+            }
+
+            //finally normalize text nodes
+            node.normalize();
         }
     });
 })();

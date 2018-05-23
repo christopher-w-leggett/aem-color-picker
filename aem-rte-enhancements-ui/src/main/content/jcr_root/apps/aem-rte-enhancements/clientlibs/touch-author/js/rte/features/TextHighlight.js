@@ -99,6 +99,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                 dominantMark = null,
                 i;
 
+            //TODO: Logic needs updating
             if(RTEExt.rte.Utils.isFullSelection(selDef.selection, selDef.editContext.root)){
                 dominantMark = RTEExt.rte.Utils.getSharedDominantParent(
                     selDef.selection.startNode, selDef.selection.endNode, selDef.editContext.root, 'mark'

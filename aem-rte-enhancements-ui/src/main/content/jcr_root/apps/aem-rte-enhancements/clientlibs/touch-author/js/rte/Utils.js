@@ -437,8 +437,6 @@ RTEExt.rte.Utils = (function(CUI){
     }
 
     return {
-        getLeftDominantParents: getLeftDominantParents,
-        getRightDominantParents: getRightDominantParents,
         isRangeSelection: isRangeSelection,
         isFullSelection: isFullSelection,
         getSelectionStyle: getSelectionStyle,
