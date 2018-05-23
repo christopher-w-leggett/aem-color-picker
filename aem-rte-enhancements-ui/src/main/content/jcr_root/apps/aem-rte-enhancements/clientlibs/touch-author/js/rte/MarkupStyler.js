@@ -117,29 +117,6 @@ RTEExt.rte = RTEExt.rte || {};
             curNode = startNode;
             while(curNode){
                 //get the group of nodes to style
-                //TODO: Grouping within curNodes parent can miss given following structure with a selection that starts in one span and ends in another.
-                //TODO: The result would still need to be a flat span structure without sibling spans sharing the same content.
-                //IDEA: Instead of finding groups and styling groups, perhaps we should just have a running styled container that gets placed before the curNode (splitting start text as needed)
-                //       - If current node can be wrapped and isn't part of the endTree, it is simply moved within the running styled container and we move to the next node.
-                //       - If current node can't be wrapped and has children, strip descendant styles from running styled container, reset running styled container by setting to null and continue to next node.
-                //       - If current node can be wrapped, isn't part of the endTree and we don't have a running styled container.
-                //          - Create a new styled container, inserting before the current node, insert current node into it and move to next node.
-                //       - If current node is part of endTree, just continue to next node.  Also reset running styled container if current node can't be wrapped (same as above).
-                /*
-                <p>
-                    <span>some content</span>
-                    <span> more</span>
-                    <span> content</span>
-                    <span> again</span>
-                </p>
-                <p>
-                    <span> again</span>
-                    <span> <b><a href="">again</a></b></span>
-                    <div>
-                        <span>a different end node</span>
-                    </div>
-                </p>
-                */
                 stylingGroup = this.getStylingGroup(curNode, endNode, endTree);
 
                 //style group or move on.
@@ -152,22 +129,6 @@ RTEExt.rte = RTEExt.rte || {};
                 }else{
                     nextNode = this.getNextInRange(curNode, endNode, true);
                 }
-
-                //TODO: Need to find the "group" of tags to style.
-                /*
-                    TODO:
-                    validStylingNode = node with stylingTagName.
-                    validWrappingNode = node that isn't in nonWrappingTags list and doesn't contain descendants in the nonWrappingTags list.
-
-                    if curNode is a text node or validWrappingNode, group it with all nextSiblings that are text nodes or validWrappingNodes.
-                        - set nextNode to nextRangeSibling from last node in the group.  If recursed into, nextNode should be just the nextSibling.
-                        - for all grouped nodes and their descendants, strip styles in our styles obj for any validStylingNodes and remove node if no additional attributes or styles exist.
-                        - wrap grouped nodes into a new styling node and apply styles.
-
-                    else
-                        - set nextNode to nextRangeSibling from curNode.  If recursed into, nextNode should be just the nextSibling.
-                        - recurse into children and do same range styling logic.
-                */
 
                 //set next node
                 curNode = nextNode;
