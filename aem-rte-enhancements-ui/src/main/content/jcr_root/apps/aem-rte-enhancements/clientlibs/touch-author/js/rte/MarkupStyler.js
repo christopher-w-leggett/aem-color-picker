@@ -131,6 +131,7 @@ RTEExt.rte = RTEExt.rte || {};
                 </p>
                 <p>
                     <span> again</span>
+                    <span> <b><a href="">again</a></b></span>
                     <div>
                         <span>a different end node</span>
                     </div>
@@ -175,21 +176,23 @@ RTEExt.rte = RTEExt.rte || {};
                 curNode = startNode,
                 nextNode;
 
-            while(curNode){
-                if(this.canWrap(curNode)){
-                    group.push(curNode);
+            if(!endTree.includes(startNode)){
+                while(curNode){
+                    if(this.canWrap(curNode)){
+                        group.push(curNode);
 
-                    //get next sibling as long as we aren't the end node.
-                    curNode = curNode !== endNode ? curNode.nextSibling : null;
+                        //get next sibling as long as we aren't the end node.
+                        curNode = curNode !== endNode ? curNode.nextSibling : null;
 
-                    //verify next sibling
-                    if(curNode && endTree.includes(curNode)){
-                        //we ran into the end nodes tree, don't wrap anymore siblings.
+                        //verify next sibling
+                        if(curNode && endTree.includes(curNode)){
+                            //we ran into the end nodes tree, don't wrap anymore siblings.
+                            curNode = null;
+                        }
+                    }else{
+                        //stop grouping as we can no longer wrap siblings
                         curNode = null;
                     }
-                }else{
-                    //stop grouping as we can no longer wrap siblings
-                    curNode = null;
                 }
             }
 
