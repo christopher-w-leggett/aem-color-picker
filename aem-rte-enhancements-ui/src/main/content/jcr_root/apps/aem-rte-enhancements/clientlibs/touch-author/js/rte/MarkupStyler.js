@@ -43,10 +43,8 @@ RTEExt.rte = RTEExt.rte || {};
                 styledFragment,
                 startNode = selection.startNode,
                 startOffset = startNode.nodeType === 3 ? selection.startOffset : null,
-                startTree,
                 endNode = selection.endNode,
                 endOffset = endNode.nodeType === 3 ? selection.endOffset : null,
-                endTree,
                 readPointer,
                 writePointer,
                 curClone,
@@ -80,10 +78,6 @@ RTEExt.rte = RTEExt.rte || {};
             if(startNode && endNode){
                 //determine acting root of start/end nodes.  This needs to be closest non-wrapping ancestor.
                 actingRoot = this._getActingRoot(selection, root);
-
-                //populate start/end trees
-                startTree = RTEExt.rte.Utils.getAncestors(startNode, actingRoot);
-                endTree = RTEExt.rte.Utils.getAncestors(endNode, actingRoot);
 
                 //create document fragment to hold new content
                 styledFragment = document.createDocumentFragment();
