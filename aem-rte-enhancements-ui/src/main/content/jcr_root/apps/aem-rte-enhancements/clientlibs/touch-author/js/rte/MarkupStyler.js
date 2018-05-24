@@ -232,6 +232,8 @@ RTEExt.rte = RTEExt.rte || {};
                             //append cloned node
                             writePointer.appendChild(curClone);
                         } else if(foundStartNode && !foundEndNode && readPointer === endNode){
+                            foundEndNode = true;
+
                             //split end node appropriately
                             styledText = null;
                             endUnstyledText = null;
@@ -423,7 +425,7 @@ RTEExt.rte = RTEExt.rte || {};
                 i;
 
             //and doesn't contain an _rte attribute
-            for(i = 0; i < node.attributes.length && stylingNode; i++){
+            for(i = 0; stylingNode && i < node.attributes.length; i++){
                 stylingNode = !node.attributes[i].name.startsWith('_rte');
             }
 
