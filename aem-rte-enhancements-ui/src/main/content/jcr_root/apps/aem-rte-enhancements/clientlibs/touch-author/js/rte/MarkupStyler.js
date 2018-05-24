@@ -132,7 +132,7 @@ RTEExt.rte = RTEExt.rte || {};
 
                             //we need to move our write pointer up to first non-wrapping node (keep track of tree)
                             tempTree = [];
-                            while(writePointer.nodeType !== 11 && !this.nonWrappingTags.includes(writePointer) && writePointer !== actingRoot){
+                            while(writePointer.nodeType !== 11 && !this._isNonWrappingNode(writePointer) && writePointer !== actingRoot){
                                 //clone and track tree
                                 tempNode = RTEExt.rte.Utils.cloneNode(writePointer);
                                 tempTree.push(tempNode);
@@ -147,11 +147,18 @@ RTEExt.rte = RTEExt.rte || {};
                                 writePointer = tempNode;
                             }
 
-                            //create styling node and append to write pointer, then move writePointer to styling node.
-                            curStylingNode = document.createElement(this.stylingTagName);
-                            this.styleNode(curStylingNode, styles);
-                            writePointer.appendChild(curStylingNode);
-                            writePointer = curStylingNode;
+                            //set or create styling node
+                            if(tempTree.length && this.isStylingNode(tempTree[tempTree.length - 1])){
+                                curStylingNode = tempTree[tempTree.length - 1];
+                                this.styleNode(curStylingNode, styles);
+                            } else {
+                                //create styling node and append to write pointer,
+                                //then move writePointer to styling node.
+                                curStylingNode = document.createElement(this.stylingTagName);
+                                this.styleNode(curStylingNode, styles);
+                                writePointer.appendChild(curStylingNode);
+                                writePointer = curStylingNode;
+                            }
 
                             //now recreate hierarchy
                             for(i = tempTree.length - 1; i >=0; i--){
@@ -180,7 +187,7 @@ RTEExt.rte = RTEExt.rte || {};
                                 trackTree = endUnstyledText || readPointer.firstChild || readPointer.nextSibling;
                                 tempTree = [];
                                 tempNode = readPointer.parentNode;
-                                while(!this.nonWrappingTags.includes(tempNode) && tempNode !== actingRoot){
+                                while(!this._isNonWrappingNode(tempNode) && tempNode !== actingRoot){
                                     if(trackTree){
                                         tempTree.push(tempNode);
                                     }
@@ -201,7 +208,7 @@ RTEExt.rte = RTEExt.rte || {};
                             }
                         } else if(foundStartNode && !foundEndNode && readPointer !== endNode){
                             //if readPointer is a non wrapping tag
-                            if(this.nonWrappingTags.includes(readPointer)){
+                            if(this._isNonWrappingNode(readPointer)){
                                 //close any open styling node by move our write pointer above the current styling node
                                 //and setting current styling node to null.
                                 if(curStylingNode){
@@ -216,11 +223,16 @@ RTEExt.rte = RTEExt.rte || {};
                                     curStylingNode = null;
                                 }
                             } else if(!curStylingNode){
-                                //open new styling node
-                                curStylingNode = document.createElement(this.stylingTagName);
-                                this.styleNode(curStylingNode, styles);
-                                writePointer.appendChild(curStylingNode);
-                                writePointer = curStylingNode;
+                                if(this.isStylingNode(curClone)){
+                                    curStylingNode = curClone;
+                                    this.styleNode(curStylingNode, styles);
+                                } else {
+                                    //open new styling node
+                                    curStylingNode = document.createElement(this.stylingTagName);
+                                    this.styleNode(curStylingNode, styles);
+                                    writePointer.appendChild(curStylingNode);
+                                    writePointer = curStylingNode;
+                                }
                             }
 
                             //append cloned node
@@ -229,17 +241,7 @@ RTEExt.rte = RTEExt.rte || {};
                             //split end node appropriately
                             styledText = null;
                             endUnstyledText = null;
-                            if(startNode === endNode && (startOffset || endOffset)){
-                                //start/end are the same, so we need to split the single node.
-                                startUnstyledText = startOffset
-                                    ? document.createTextNode(curClone.textContent.substring(0, startOffset))
-                                    : null;
-                                styledText = document.createTextNode(curClone.textContent.substring(
-                                    startOffset || 0, endOffset || curClone.textContent.length
-                                ));
-
-                                foundEndNode = true;
-                            } else if(endOffset && endOffset < curClone.textContent.length) {
+                            if(endOffset && endOffset < curClone.textContent.length) {
                                 styledText = document.createTextNode(curClone.textContent.substring(
                                     0, endOffset
                                 ));
@@ -273,7 +275,7 @@ RTEExt.rte = RTEExt.rte || {};
                             trackTree = endUnstyledText || readPointer.firstChild || readPointer.nextSibling;
                             tempTree = [];
                             tempNode = readPointer.parentNode;
-                            while(!this.nonWrappingTags.includes(tempNode) && tempNode !== actingRoot){
+                            while(!this._isNonWrappingNode(tempNode) && tempNode !== actingRoot){
                                 if(trackTree){
                                     tempTree.push(tempNode);
                                 }
@@ -310,6 +312,11 @@ RTEExt.rte = RTEExt.rte || {};
                             while(!readPointer.nextSibling && readPointer !== actingRoot){
                                 readPointer = readPointer.parentNode;
                                 if(writePointer.parentNode){
+                                    //clear styling node if we are moving out of it
+                                    if(curStylingNode && curStylingNode === writePointer){
+                                        curStylingNode = null;
+                                    }
+
                                     writePointer = writePointer.parentNode;
                                 }
                             }
@@ -334,6 +341,11 @@ RTEExt.rte = RTEExt.rte || {};
                             while(!readPointer.nextSibling && readPointer !== actingRoot){
                                 readPointer = readPointer.parentNode;
                                 if(writePointer.parentNode){
+                                    //clear styling node if we are moving out of it
+                                    if(curStylingNode && curStylingNode === writePointer){
+                                        curStylingNode = null;
+                                    }
+
                                     writePointer = writePointer.parentNode;
                                 }
                             }
@@ -458,7 +470,7 @@ RTEExt.rte = RTEExt.rte || {};
 
             while(activeRoot === null && startIndex < startNodeAncestors.length){
                 if(startNodeAncestors[startIndex].tagName
-                    && this.nonWrappingTags.includes(startNodeAncestors[startIndex].tagName.toLowerCase())
+                    && this._isNonWrappingNode(startNodeAncestors[startIndex])
                     && startNodeAncestors[startIndex] === endNodeAncestors[endIndex]){
                     activeRoot = startNodeAncestors[startIndex];
                 }
@@ -473,6 +485,10 @@ RTEExt.rte = RTEExt.rte || {};
             }
 
             return activeRoot;
+        },
+
+        _isNonWrappingNode: function(node){
+            return node.tagName && this.nonWrappingTags.includes(node.tagName.toLowerCase());
         },
 
         //TODO: Review below.
@@ -536,7 +552,7 @@ RTEExt.rte = RTEExt.rte || {};
 
             if(node.nodeType === 3){
                 wrap = true;
-            } else if(node.nodeType === 1 && !this.nonWrappingTags.includes(node.tagName.toLowerCase())){
+            } else if(node.nodeType === 1 && !this._isNonWrappingNode(node)){
                 if(this.canWrapDescendants(node)){
                     wrap = true;
                 }
@@ -577,138 +593,138 @@ RTEExt.rte = RTEExt.rte || {};
             return nextNode;
         },
 
-        styleNodes: function(nodes, startNode, startOffset, endNode, endOffset, styles, stripDef){
-            var firstNode = nodes[0],
-                stylingContainer,
-                startUnstyledText,
-                styledText,
-                endUnstyledText,
-                clonedParent,
-                curNode,
-                nextNode,
-                i;
-
-            //look up ancestors of first node for either a non wrapping element or a styling element, whatever comes first.
-
-            //clone and place clone before original
-            //move all nodes up to start node hierarchy into clone
-            //for start node hierarchy, clone nodes
-
-
-
-
-
-
-
-
-
-            //create styling container and style appropriately.
-            stylingContainer = document.createElement(this.stylingTagName);
-            this.styleNode(stylingContainer, styles);
-
-            //position styling container before first node in the group.
-            firstNode.parentNode.insertBefore(stylingContainer, firstNode);
-
-            //go through nodes and move them to our styling node.
-            for(i = 0; i < nodes.length; i++){
-                if(nodes[i] === startNode && nodes[i] === endNode && nodes[i].nodeType === 3 && (
-                    startOffset || (endOffset && endOffset < nodes[i].textContent.length)
-                )){
-                    //node is both the start node and the end node and is partial text selection, move unstyled parts outside of styling container.
-                    startUnstyledText = startOffset
-                        ? document.createTextNode(nodes[i].textContent.substring(0, startOffset))
-                        : null;
-                    styledText = document.createTextNode(nodes[i].textContent.substring(
-                        startOffset || 0, endOffset || nodes[i].textContent.length
-                    ));
-                    endUnstyledText = endOffset && endOffset < nodes[i].textContent.length
-                        ? document.createTextNode(nodes[i].textContent.substring(endOffset))
-                        : null;
-                    if(startUnstyledText){
-                        stylingContainer.parentNode.insertBefore(startUnstyledText, stylingContainer);
-                    }
-                    stylingContainer.appendChild(styledText);
-                    if(endUnstyledText){
-                        if(stylingContainer.nextSibling){
-                            stylingContainer.parentNode.insertBefore(endUnstyledText, stylingContainer.nextSibling);
-                        }else{
-                            stylingContainer.parentNode.appendChild(endUnstyledText);
-                        }
-                    }
-                    stylingContainer.parentNode.removeChild(nodes[i]);
-                } else if(nodes[i] === startNode && nodes[i].nodeType === 3 && startOffset){
-                    //if node is start node and is partial text selection, move unstyled part before the styling container and styled part at end of styling container.
-                    startUnstyledText = document.createTextNode(nodes[i].textContent.substring(0, startOffset));
-                    styledText = document.createTextNode(nodes[i].textContent.substring(startOffset));
-                    stylingContainer.parentNode.insertBefore(startUnstyledText, stylingContainer);
-                    stylingContainer.appendChild(styledText);
-                    stylingContainer.parentNode.removeChild(nodes[i]);
-                } else if(nodes[i] === endNode && nodes[i].nodeType === 3 && endOffset && endOffset < nodes[i].textContent.length){
-                    //if node is end node and is partial text selection, move styled part at end of styling container and unstyled part after the styling container.
-                    styledText = document.createTextNode(nodes[i].textContent.substring(0, endOffset));
-                    endUnstyledText = document.createTextNode(nodes[i].textContent.substring(endOffset));
-                    stylingContainer.appendChild(styledText);
-                    if(stylingContainer.nextSibling){
-                        stylingContainer.parentNode.insertBefore(endUnstyledText, stylingContainer.nextSibling);
-                    }else{
-                        stylingContainer.parentNode.appendChild(endUnstyledText);
-                    }
-                    stylingContainer.parentNode.removeChild(nodes[i]);
-                } else {
-                    //else move node at end of styling container.
-                    stylingContainer.appendChild(nodes[i]);
-                }
-            }
-
-            //if parent of styling container is itself a styling container, we need to split it.
-            if(this.isStylingNode(stylingContainer.parentNode, styles)){
-                if(stylingContainer.parentNode.firstChild === stylingContainer){
-                    //simply move styling container before parent
-                    stylingContainer.parentNode.parentNode.insertBefore(stylingContainer, stylingContainer.parentNode);
-                } else {
-                    //clone parent styling node and place cloned parent before the original parent
-                    clonedParent = RTEExt.rte.Utils.cloneNode(stylingContainer.parentNode);
-                    stylingContainer.parentNode.parentNode.insertBefore(clonedParent, stylingContainer.parentNode);
-
-                    //move across children of original parent and move accordingly
-                    curNode = stylingContainer.parentNode.firstChild;
-                    while(curNode){
-                        if(curNode !== stylingContainer){
-                            //capture next node
-                            nextNode = curNode.nextSibling;
-
-                            //we are before styling container, so place them in the cloned parent
-                            clonedParent.appendChild(curNode);
-
-                            //set next node
-                            curNode = nextNode;
-                        } else {
-                            //found styling container, move before original parent
-                            stylingContainer.parentNode.parentNode.insertBefore(
-                                stylingContainer, stylingContainer.parentNode
-                            );
-
-                            //end looping as we don't need to move content after styling container
-                            curNode = null;
-                        }
-                    }
-                }
-
-                //remove original styled parent if it is now empty.
-                if(!stylingContainer.nextSibling.childNodes.length){
-                    stylingContainer.parentNode.removeChild(stylingContainer.nextSibling);
-                }
-            }
-
-            //strip any descendant styling from our new stylingContainer
-            RTEExt.rte.Utils.stripDescendantStyle(stylingContainer, stripDef);
-
-            //it may be possible that our styles are actually being removed, if that is the case,
-            //just unwrap our styling node
-            if(RTEExt.rte.Utils.canUnwrap(stylingContainer, this.stylingTagName)){
-                RTEExt.rte.Utils.unwrap(stylingContainer);
-            }
-        },
+//        styleNodes: function(nodes, startNode, startOffset, endNode, endOffset, styles, stripDef){
+//            var firstNode = nodes[0],
+//                stylingContainer,
+//                startUnstyledText,
+//                styledText,
+//                endUnstyledText,
+//                clonedParent,
+//                curNode,
+//                nextNode,
+//                i;
+//
+//            //look up ancestors of first node for either a non wrapping element or a styling element, whatever comes first.
+//
+//            //clone and place clone before original
+//            //move all nodes up to start node hierarchy into clone
+//            //for start node hierarchy, clone nodes
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//            //create styling container and style appropriately.
+//            stylingContainer = document.createElement(this.stylingTagName);
+//            this.styleNode(stylingContainer, styles);
+//
+//            //position styling container before first node in the group.
+//            firstNode.parentNode.insertBefore(stylingContainer, firstNode);
+//
+//            //go through nodes and move them to our styling node.
+//            for(i = 0; i < nodes.length; i++){
+//                if(nodes[i] === startNode && nodes[i] === endNode && nodes[i].nodeType === 3 && (
+//                    startOffset || (endOffset && endOffset < nodes[i].textContent.length)
+//                )){
+//                    //node is both the start node and the end node and is partial text selection, move unstyled parts outside of styling container.
+//                    startUnstyledText = startOffset
+//                        ? document.createTextNode(nodes[i].textContent.substring(0, startOffset))
+//                        : null;
+//                    styledText = document.createTextNode(nodes[i].textContent.substring(
+//                        startOffset || 0, endOffset || nodes[i].textContent.length
+//                    ));
+//                    endUnstyledText = endOffset && endOffset < nodes[i].textContent.length
+//                        ? document.createTextNode(nodes[i].textContent.substring(endOffset))
+//                        : null;
+//                    if(startUnstyledText){
+//                        stylingContainer.parentNode.insertBefore(startUnstyledText, stylingContainer);
+//                    }
+//                    stylingContainer.appendChild(styledText);
+//                    if(endUnstyledText){
+//                        if(stylingContainer.nextSibling){
+//                            stylingContainer.parentNode.insertBefore(endUnstyledText, stylingContainer.nextSibling);
+//                        }else{
+//                            stylingContainer.parentNode.appendChild(endUnstyledText);
+//                        }
+//                    }
+//                    stylingContainer.parentNode.removeChild(nodes[i]);
+//                } else if(nodes[i] === startNode && nodes[i].nodeType === 3 && startOffset){
+//                    //if node is start node and is partial text selection, move unstyled part before the styling container and styled part at end of styling container.
+//                    startUnstyledText = document.createTextNode(nodes[i].textContent.substring(0, startOffset));
+//                    styledText = document.createTextNode(nodes[i].textContent.substring(startOffset));
+//                    stylingContainer.parentNode.insertBefore(startUnstyledText, stylingContainer);
+//                    stylingContainer.appendChild(styledText);
+//                    stylingContainer.parentNode.removeChild(nodes[i]);
+//                } else if(nodes[i] === endNode && nodes[i].nodeType === 3 && endOffset && endOffset < nodes[i].textContent.length){
+//                    //if node is end node and is partial text selection, move styled part at end of styling container and unstyled part after the styling container.
+//                    styledText = document.createTextNode(nodes[i].textContent.substring(0, endOffset));
+//                    endUnstyledText = document.createTextNode(nodes[i].textContent.substring(endOffset));
+//                    stylingContainer.appendChild(styledText);
+//                    if(stylingContainer.nextSibling){
+//                        stylingContainer.parentNode.insertBefore(endUnstyledText, stylingContainer.nextSibling);
+//                    }else{
+//                        stylingContainer.parentNode.appendChild(endUnstyledText);
+//                    }
+//                    stylingContainer.parentNode.removeChild(nodes[i]);
+//                } else {
+//                    //else move node at end of styling container.
+//                    stylingContainer.appendChild(nodes[i]);
+//                }
+//            }
+//
+//            //if parent of styling container is itself a styling container, we need to split it.
+//            if(this.isStylingNode(stylingContainer.parentNode, styles)){
+//                if(stylingContainer.parentNode.firstChild === stylingContainer){
+//                    //simply move styling container before parent
+//                    stylingContainer.parentNode.parentNode.insertBefore(stylingContainer, stylingContainer.parentNode);
+//                } else {
+//                    //clone parent styling node and place cloned parent before the original parent
+//                    clonedParent = RTEExt.rte.Utils.cloneNode(stylingContainer.parentNode);
+//                    stylingContainer.parentNode.parentNode.insertBefore(clonedParent, stylingContainer.parentNode);
+//
+//                    //move across children of original parent and move accordingly
+//                    curNode = stylingContainer.parentNode.firstChild;
+//                    while(curNode){
+//                        if(curNode !== stylingContainer){
+//                            //capture next node
+//                            nextNode = curNode.nextSibling;
+//
+//                            //we are before styling container, so place them in the cloned parent
+//                            clonedParent.appendChild(curNode);
+//
+//                            //set next node
+//                            curNode = nextNode;
+//                        } else {
+//                            //found styling container, move before original parent
+//                            stylingContainer.parentNode.parentNode.insertBefore(
+//                                stylingContainer, stylingContainer.parentNode
+//                            );
+//
+//                            //end looping as we don't need to move content after styling container
+//                            curNode = null;
+//                        }
+//                    }
+//                }
+//
+//                //remove original styled parent if it is now empty.
+//                if(!stylingContainer.nextSibling.childNodes.length){
+//                    stylingContainer.parentNode.removeChild(stylingContainer.nextSibling);
+//                }
+//            }
+//
+//            //strip any descendant styling from our new stylingContainer
+//            RTEExt.rte.Utils.stripDescendantStyle(stylingContainer, stripDef);
+//
+//            //it may be possible that our styles are actually being removed, if that is the case,
+//            //just unwrap our styling node
+//            if(RTEExt.rte.Utils.canUnwrap(stylingContainer, this.stylingTagName)){
+//                RTEExt.rte.Utils.unwrap(stylingContainer);
+//            }
+//        },
 
         /**
          * Applies provided styles to the node.
@@ -726,26 +742,16 @@ RTEExt.rte = RTEExt.rte || {};
         },
 
         /**
-         * Checks if provided node is a styling node that only contains at most the styles being applied.
+         * Checks if provided node is a styling node.
          */
-        isStylingNode: function(node, styles){
+        isStylingNode: function(node){
             //a styling node shares the same styling tag name
             var stylingNode = node.tagName && node.tagName.toLowerCase() === this.stylingTagName,
                 i;
 
-            //also only contains at most the style attribute
-            stylingNode = stylingNode && (
-                node.attributes.length === 0 || (
-                    node.attributes.length === 1 && node.attributes[0].nodeName === 'style'
-                )
-            );
-
-            //also only contains styles that are being modified.
-            i = 0;
-            while(stylingNode && i < node.style.length){
-                stylingNode = stylingNode && styles.hasOwnProperty(node.style[i]);
-
-                i++;
+            //and doesn't contain an _rte attribute
+            for(i = 0; i < node.attributes.length && stylingNode; i++){
+                stylingNode = !node.attributes[i].name.startsWith('_rte');
             }
 
             return stylingNode;
@@ -815,8 +821,8 @@ RTEExt.rte = RTEExt.rte || {};
             while(curNode){
                 //merge next sibling until we can't
                 while(curNode.nextSibling
-                    && !this.nonWrappingTags.includes(curNode)
-                    && !this.nonWrappingTags.includes(curNode.nextSibling)
+                    && !this._isNonWrappingNode(curNode)
+                    && !this._isNonWrappingNode(curNode.nextSibling)
                     && this.isEqual(curNode, curNode.nextSibling)){
                     //merge siblings.
                     while(curNode.nextSibling.firstChild){
