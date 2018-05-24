@@ -91,7 +91,6 @@ RTEExt.rte = RTEExt.rte || {};
                 readPointer = actingRoot.firstChild;
 
                 //copy and style content to document fragment.
-                //TODO: handle unwrapping empty nodes if styles are removed.
                 while(readPointer){
                     curClone = RTEExt.rte.Utils.cloneNode(readPointer);
                     if(curClone){
@@ -172,6 +171,9 @@ RTEExt.rte = RTEExt.rte || {};
                                 }
                                 writePointer = writePointer.parentNode;
                                 RTEExt.rte.Utils.stripDescendantStyle(curStylingNode, stripDef);
+                                if(RTEExt.rte.Utils.canUnwrap(curStylingNode, this.stylingTagName)){
+                                    RTEExt.rte.Utils.unwrap(curStylingNode);
+                                }
                                 curStylingNode = null;
 
                                 //we need to determine the portion of the end tree to recreate for the next node.
@@ -208,6 +210,9 @@ RTEExt.rte = RTEExt.rte || {};
                                     }
                                     writePointer = writePointer.parentNode;
                                     RTEExt.rte.Utils.stripDescendantStyle(curStylingNode, stripDef);
+                                    if(RTEExt.rte.Utils.canUnwrap(curStylingNode, this.stylingTagName)){
+                                        RTEExt.rte.Utils.unwrap(curStylingNode);
+                                    }
                                     curStylingNode = null;
                                 }
                             } else if(!curStylingNode){
@@ -259,6 +264,9 @@ RTEExt.rte = RTEExt.rte || {};
                             }
                             writePointer = writePointer.parentNode;
                             RTEExt.rte.Utils.stripDescendantStyle(curStylingNode, stripDef);
+                            if(RTEExt.rte.Utils.canUnwrap(curStylingNode, this.stylingTagName)){
+                                RTEExt.rte.Utils.unwrap(curStylingNode);
+                            }
                             curStylingNode = null;
 
                             //we need to determine the portion of the end tree to recreate for the next node.
