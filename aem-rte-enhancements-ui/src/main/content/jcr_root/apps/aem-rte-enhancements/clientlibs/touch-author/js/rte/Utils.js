@@ -426,11 +426,13 @@ RTEExt.rte.Utils = (function(CUI){
         var newNode = null,
             i;
 
-        if(node.tagName){
+        if(node.nodeType === 1){
             newNode = document.createElement(node.tagName);
             for(i = 0; i < node.attributes.length; i++){
                 newNode.setAttribute(node.attributes[i].name, node.attributes[i].value);
             }
+        } else if(node.nodeType === 3){
+            newNode = document.createTextNode(node.textContent);
         }
 
         return newNode;
