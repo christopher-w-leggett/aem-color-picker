@@ -111,12 +111,10 @@ RTEExt.rte = RTEExt.rte || {};
                                     : null;
                             } else if(startOffset) {
                                 //there is a start offset, so we need to split the start node.
-                                startUnstyledText = startOffset
-                                    ? document.createTextNode(curClone.textContent.substring(0, startOffset))
-                                    : null;
-                                styledText = document.createTextNode(curClone.textContent.substring(
-                                    startOffset || 0, endOffset || curClone.textContent.length
-                                ));
+                                startUnstyledText = document.createTextNode(
+                                    curClone.textContent.substring(0, startOffset)
+                                );
+                                styledText = document.createTextNode(curClone.textContent.substring(startOffset));
                             }
 
                             //if the beginning portion of our start node is unstyled, just append now
