@@ -307,12 +307,28 @@ RTEExt.rte = RTEExt.rte || {};
                             //writePointer follows the same pattern
                             while(!readPointer.nextSibling && readPointer !== actingRoot){
                                 readPointer = readPointer.parentNode;
-                                if(writePointer.parentNode){
-                                    //clear styling node if we are moving out of it
-                                    if(curStylingNode && curStylingNode === writePointer){
-                                        curStylingNode = null;
+                                if(writePointer === curStylingNode){
+                                    //close any open styling node by move our write pointer above the current styling node
+                                    //and setting current styling node to null.
+                                    while(writePointer !== curStylingNode){
+                                        writePointer = writePointer.parentNode;
                                     }
+                                    writePointer = writePointer.parentNode;
+                                    RTEExt.rte.Utils.stripDescendantStyle(curStylingNode, stripDef);
+                                    if(RTEExt.rte.Utils.canUnwrap(curStylingNode, this.stylingTagName)){
+                                        RTEExt.rte.Utils.unwrap(curStylingNode);
+                                    }
+                                    curStylingNode = null;
 
+                                    //if my read pointer is moving out of a non wrapping node,
+                                    //we need to move the write pointer an additional step up because an
+                                    //additional styling node was created so our write pointer is an additional
+                                    //step down.
+                                    if(this._isNonWrappingNode(readPointer) && writePointer.parentNode){
+                                        writePointer = writePointer.parentNode;
+                                    }
+                                } else if(writePointer.parentNode){
+                                    //move writePointer up
                                     writePointer = writePointer.parentNode;
                                 }
                             }
@@ -336,12 +352,28 @@ RTEExt.rte = RTEExt.rte || {};
                             //writePointer follows the same pattern
                             while(!readPointer.nextSibling && readPointer !== actingRoot){
                                 readPointer = readPointer.parentNode;
-                                if(writePointer.parentNode){
-                                    //clear styling node if we are moving out of it
-                                    if(curStylingNode && curStylingNode === writePointer){
-                                        curStylingNode = null;
+                                if(writePointer === curStylingNode){
+                                    //close any open styling node by move our write pointer above the current styling node
+                                    //and setting current styling node to null.
+                                    while(writePointer !== curStylingNode){
+                                        writePointer = writePointer.parentNode;
                                     }
+                                    writePointer = writePointer.parentNode;
+                                    RTEExt.rte.Utils.stripDescendantStyle(curStylingNode, stripDef);
+                                    if(RTEExt.rte.Utils.canUnwrap(curStylingNode, this.stylingTagName)){
+                                        RTEExt.rte.Utils.unwrap(curStylingNode);
+                                    }
+                                    curStylingNode = null;
 
+                                    //if my read pointer is moving out of a non wrapping node,
+                                    //we need to move the write pointer an additional step up because an
+                                    //additional styling node was created so our write pointer is an additional
+                                    //step down.
+                                    if(this._isNonWrappingNode(readPointer) && writePointer.parentNode){
+                                        writePointer = writePointer.parentNode;
+                                    }
+                                } else if(writePointer.parentNode){
+                                    //move writePointer up
                                     writePointer = writePointer.parentNode;
                                 }
                             }
