@@ -104,7 +104,7 @@ RTEExt.rte = RTEExt.rte || {};
                         startUnstyledText = null;
                         styledText = null;
                         endUnstyledText = null;
-                        if(startNode === endNode && (startOffset || (endOffset && endOffset < readPointer.textContent.length))){
+                        if(startNode === endNode && (startOffset || (endOffset >= 0 && endOffset < readPointer.textContent.length))){
                             //start/end are the same, so we need to split the single node.
                             startUnstyledText = startOffset
                                 ? document.createTextNode(readPointer.textContent.substring(0, startOffset))
@@ -112,7 +112,7 @@ RTEExt.rte = RTEExt.rte || {};
                             styledText = document.createTextNode(readPointer.textContent.substring(
                                 startOffset || 0, endOffset || readPointer.textContent.length
                             ));
-                            endUnstyledText = endOffset && endOffset < readPointer.textContent.length
+                            endUnstyledText = endOffset >= 0 && endOffset < readPointer.textContent.length
                                 ? document.createTextNode(readPointer.textContent.substring(endOffset))
                                 : null;
                         } else if(startOffset) {
@@ -129,15 +129,22 @@ RTEExt.rte = RTEExt.rte || {};
                         }
 
                         //we need to move our write pointer up to first container node or styling container node
-                        //(keep track of tree).
-                        tempTree = [];
                         while(writePointer !== styledFragment && !this._isContainerNode(writePointer)
                             && !this._isStylingContainerNode(writePointer)){
-                            //clone and track tree
-                            tempTree.push(RTEExt.rte.Utils.cloneNode(writePointer));
-
                             //reposition write pointer
                             writePointer = writePointer.parentNode;
+                        }
+
+                        //determine any hierarchy that will need to be recreated.
+                        tempTree = [];
+                        tempNode = readPointer.parentNode;
+                        while(tempNode !== actingRoot && !this._isContainerNode(tempNode)
+                            && !this._isStylingContainerNode(tempNode)){
+                            //clone and track tree
+                            tempTree.push(RTEExt.rte.Utils.cloneNode(tempNode));
+
+                            //reposition
+                            tempNode = tempNode.parentNode;
                         }
 
                         //set or create styling node
@@ -166,12 +173,8 @@ RTEExt.rte = RTEExt.rte || {};
                         //if we also encountered our end node, handle the end portion now.
                         if(foundEndNode){
                             //close open styling node by move our write pointer above the current styling node
-                            //and setting current styling node to null (keep track of tree).
-                            tempTree = [];
+                            //and setting current styling node to null.
                             while(writePointer !== curStylingNode){
-                                //clone and track tree
-                                tempTree.push(RTEExt.rte.Utils.cloneNode(writePointer));
-
                                 //reposition write pointer
                                 writePointer = writePointer.parentNode;
                             }
@@ -181,6 +184,18 @@ RTEExt.rte = RTEExt.rte || {};
                                 RTEExt.rte.Utils.unwrap(curStylingNode);
                             }
                             curStylingNode = null;
+
+                            //determine any hierarchy that will need to be recreated.
+                            tempTree = [];
+                            tempNode = readPointer.parentNode;
+                            while(tempNode !== actingRoot && !this._isContainerNode(tempNode)
+                                && !this._isStylingContainerNode(tempNode)){
+                                //clone and track tree
+                                tempTree.push(RTEExt.rte.Utils.cloneNode(tempNode));
+
+                                //reposition
+                                tempNode = tempNode.parentNode;
+                            }
 
                             //now recreate hierarchy
                             for(i = tempTree.length - 1; i >=0; i--){
@@ -197,13 +212,9 @@ RTEExt.rte = RTEExt.rte || {};
                         if(this._isContainerNode(readPointer) || this._isStylingContainerNode(readPointer)
                             || this._isIgnoredNode(readPointer)){
                             //close any open styling node by move our write pointer above the current styling node
-                            //and setting current styling node to null (keep track of tree).
+                            //and setting current styling node to null.
                             if(curStylingNode){
-                                tempTree = [];
                                 while(writePointer !== curStylingNode){
-                                    //clone and track tree
-                                    tempTree.push(RTEExt.rte.Utils.cloneNode(writePointer));
-
                                     //reposition write pointer
                                     writePointer = writePointer.parentNode;
                                 }
@@ -214,26 +225,47 @@ RTEExt.rte = RTEExt.rte || {};
                                 }
                                 curStylingNode = null;
 
-                                //now recreate hierarchy
-                                for(i = tempTree.length - 1; i >=0; i--){
-                                    writePointer.appendChild(tempTree[i]);
-                                    writePointer = tempTree[i];
+                                if(this._isStylingContainerNode(readPointer)){
+                                    //determine any hierarchy that will need to be recreated.
+                                    tempTree = [];
+                                    tempNode = readPointer.parentNode;
+                                    while(tempNode !== actingRoot && !this._isContainerNode(tempNode)
+                                        && !this._isStylingContainerNode(tempNode)){
+                                        //clone and track tree
+                                        tempTree.push(RTEExt.rte.Utils.cloneNode(tempNode));
+
+                                        //reposition
+                                        tempNode = tempNode.parentNode;
+                                    }
+
+                                    //now recreate hierarchy
+                                    for(i = tempTree.length - 1; i >=0; i--){
+                                        writePointer.appendChild(tempTree[i]);
+                                        writePointer = tempTree[i];
+                                    }
                                 }
                             }
 
                             //append cloned node
                             writePointer.appendChild(RTEExt.rte.Utils.cloneNode(readPointer));
                         } else if(!curStylingNode){
-                            //we need to move our write pointer up to first container node or styling container node
-                            //(keep track of tree).
-                            tempTree = [];
+                            //we need to move our write pointer up to first container node or styling container node.
                             while(writePointer !== styledFragment && !this._isContainerNode(writePointer)
                                 && !this._isStylingContainerNode(writePointer)){
-                                //clone and track tree
-                                tempTree.push(RTEExt.rte.Utils.cloneNode(writePointer));
-
                                 //reposition write pointer
                                 writePointer = writePointer.parentNode;
+                            }
+
+                            //determine any hierarchy that will need to be recreated.
+                            tempTree = [];
+                            tempNode = readPointer.parentNode;
+                            while(tempNode !== actingRoot && !this._isContainerNode(tempNode)
+                                && !this._isStylingContainerNode(tempNode)){
+                                //clone and track tree
+                                tempTree.push(RTEExt.rte.Utils.cloneNode(tempNode));
+
+                                //reposition
+                                tempNode = tempNode.parentNode;
                             }
 
                             //set or create styling node
@@ -258,6 +290,8 @@ RTEExt.rte = RTEExt.rte || {};
                             if(tempTree.length || !this._isStylingNode(readPointer)){
                                 writePointer.appendChild(RTEExt.rte.Utils.cloneNode(readPointer));
                             }
+                        } else {
+                            writePointer.appendChild(RTEExt.rte.Utils.cloneNode(readPointer));
                         }
                     } else if(foundStartNode && !foundEndNode && readPointer === endNode){
                         foundEndNode = true;
@@ -265,7 +299,7 @@ RTEExt.rte = RTEExt.rte || {};
                         //split end node appropriately
                         styledText = null;
                         endUnstyledText = null;
-                        if(endOffset && endOffset < readPointer.textContent.length) {
+                        if(endOffset >= 0 && endOffset < readPointer.textContent.length) {
                             styledText = document.createTextNode(readPointer.textContent.substring(
                                 0, endOffset
                             ));
@@ -274,16 +308,23 @@ RTEExt.rte = RTEExt.rte || {};
 
                         //open a new styling node if we don't have one
                         if(!curStylingNode){
-                            //we need to move our write pointer up to first container node or styling container node
-                            //(keep track of tree).
-                            tempTree = [];
+                            //we need to move our write pointer up to first container node or styling container node.
                             while(writePointer !== styledFragment && !this._isContainerNode(writePointer)
                                 && !this._isStylingContainerNode(writePointer)){
-                                //clone and track tree
-                                tempTree.push(RTEExt.rte.Utils.cloneNode(writePointer));
-
                                 //reposition write pointer
                                 writePointer = writePointer.parentNode;
+                            }
+
+                            //determine any hierarchy that will need to be recreated.
+                            tempTree = [];
+                            tempNode = readPointer.parentNode;
+                            while(tempNode !== actingRoot && !this._isContainerNode(tempNode)
+                                && !this._isStylingContainerNode(tempNode)){
+                                //clone and track tree
+                                tempTree.push(RTEExt.rte.Utils.cloneNode(tempNode));
+
+                                //reposition
+                                tempNode = tempNode.parentNode;
                             }
 
                             //set or create styling node
@@ -311,12 +352,8 @@ RTEExt.rte = RTEExt.rte || {};
                         }
 
                         //close open styling node by move our write pointer above the current styling node
-                        //and setting current styling node to null (keep track of tree).
-                        tempTree = [];
+                        //and setting current styling node to null.
                         while(writePointer !== curStylingNode){
-                            //clone and track tree
-                            tempTree.push(RTEExt.rte.Utils.cloneNode(writePointer));
-
                             //reposition write pointer
                             writePointer = writePointer.parentNode;
                         }
@@ -326,6 +363,18 @@ RTEExt.rte = RTEExt.rte || {};
                             RTEExt.rte.Utils.unwrap(curStylingNode);
                         }
                         curStylingNode = null;
+
+                        //determine any hierarchy that will need to be recreated.
+                        tempTree = [];
+                        tempNode = readPointer.parentNode;
+                        while(tempNode !== actingRoot && !this._isContainerNode(tempNode)
+                            && !this._isStylingContainerNode(tempNode)){
+                            //clone and track tree
+                            tempTree.push(RTEExt.rte.Utils.cloneNode(tempNode));
+
+                            //reposition
+                            tempNode = tempNode.parentNode;
+                        }
 
                         //now recreate hierarchy
                         for(i = tempTree.length - 1; i >=0; i--){
@@ -355,31 +404,31 @@ RTEExt.rte = RTEExt.rte || {};
                         //writePointer follows the same pattern
                         while(!readPointer.nextSibling && readPointer !== actingRoot){
                             readPointer = readPointer.parentNode;
-                            writePointer = writePointer.parentNode ? writePointer.parentNode : writePointer;
-//                            if(writePointer === curStylingNode){
-//                                //close any open styling node by move our write pointer above the current styling node
-//                                //and setting current styling node to null.
-//                                while(writePointer !== curStylingNode){
-//                                    writePointer = writePointer.parentNode;
-//                                }
-//                                writePointer = writePointer.parentNode;
-//                                RTEExt.rte.Utils.stripDescendantStyle(curStylingNode, stripDef);
-//                                if(RTEExt.rte.Utils.canUnwrap(curStylingNode, this.stylingTagName)){
-//                                    RTEExt.rte.Utils.unwrap(curStylingNode);
-//                                }
-//                                curStylingNode = null;
-//
-//                                //if my read pointer is moving out of a non wrapping node,
-//                                //we need to move the write pointer an additional step up because an
-//                                //additional styling node was created so our write pointer is an additional
-//                                //step down.
-//                                if(this._isContainerNode(readPointer) && writePointer.parentNode){
-//                                    writePointer = writePointer.parentNode;
-//                                }
-//                            } else if(writePointer.parentNode){
-//                                //move writePointer up
-//                                writePointer = writePointer.parentNode;
-//                            }
+                            if(writePointer === curStylingNode){
+                                //close any open styling node by move our write pointer above the current styling node
+                                //and setting current styling node to null.
+                                while(writePointer !== curStylingNode){
+                                    writePointer = writePointer.parentNode;
+                                }
+                                writePointer = writePointer.parentNode;
+                                RTEExt.rte.Utils.stripDescendantStyle(curStylingNode, stripDef);
+                                if(RTEExt.rte.Utils.canUnwrap(curStylingNode, this.stylingTagName)){
+                                    RTEExt.rte.Utils.unwrap(curStylingNode);
+                                }
+                                curStylingNode = null;
+
+                                //if my read pointer is moving out of a container node,
+                                //we need to move the write pointer an additional step up because an
+                                //additional styling node was created so our write pointer is an additional
+                                //step down.
+                                if((this._isContainerNode(readPointer) || this._isStylingContainerNode(readPointer))
+                                    && writePointer.parentNode){
+                                    writePointer = writePointer.parentNode;
+                                }
+                            } else if(writePointer.parentNode){
+                                //move writePointer up
+                                writePointer = writePointer.parentNode;
+                            }
                         }
 
                         //set readPointer to correct location
@@ -531,6 +580,7 @@ RTEExt.rte = RTEExt.rte || {};
 
         /**
          * Normalizes tree structure by combining sibling nodes that share the same applicable styles.
+         * TODO: Normalize misses removing empty tags when they contain 1 single empty text node as a child.  We should just handle removing empty text nodes also.
          */
         _normalize: function(node){
             var curNode = node.firstChild,
@@ -555,7 +605,7 @@ RTEExt.rte = RTEExt.rte || {};
                     curNode.parentNode.removeChild(curNode.nextSibling);
                 }
 
-                //track if we can remove the current node.
+                //track if we can remove the current node. TODO: This actually doesn't work completely with nested empty tags (e.g. <b><i></i></b> will result in <b></b>)
                 if(curNode.nodeType === 1
                     && !this._isContainerNode(curNode)
                     && !this._isStylingContainerNode(curNode)
