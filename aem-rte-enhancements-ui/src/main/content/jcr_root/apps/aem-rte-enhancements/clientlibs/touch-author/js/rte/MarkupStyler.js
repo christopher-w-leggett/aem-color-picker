@@ -47,15 +47,14 @@ RTEExt.rte = RTEExt.rte || {};
 
         style: function(selection, styles, root){
             var actingRoot,
-                curStyle,
-                stripDef,
                 styledFragment,
+                readPointer,
+                writePointer,
+                stripDef = this._buildStripDef(styles),
                 startNode = selection.startNode,
                 startOffset = startNode && startNode.nodeType === 3 ? selection.startOffset : null,
                 endNode = selection.endNode,
                 endOffset = endNode && endNode.nodeType === 3 ? selection.endOffset : null,
-                readPointer,
-                writePointer,
                 curStylingNode,
                 tempNode,
                 tempTree,
@@ -63,22 +62,6 @@ RTEExt.rte = RTEExt.rte || {};
                 foundStartNode = false,
                 foundEndNode = false,
                 i;
-
-            //determine strip definition
-            stripDef = {
-                'strip': {
-                    'tagName': this.stylingTagName,
-                    'styles': {}
-                },
-                'unwrap': {
-                    'tagName': this.stylingTagName
-                }
-            };
-            for(curStyle in styles){
-                if(styles.hasOwnProperty(curStyle)){
-                    stripDef.strip.styles[curStyle] = /.*/;
-                }
-            }
 
             if(startNode && endNode){
                 //determine acting root of start/end nodes.  This needs to be closest non-wrapping ancestor.
@@ -88,8 +71,10 @@ RTEExt.rte = RTEExt.rte || {};
 
                 //create document fragment to hold new content
                 styledFragment = document.createDocumentFragment();
-                writePointer = styledFragment;
+
+                //set our pointers to initial values
                 readPointer = actingRoot.firstChild;
+                writePointer = styledFragment;
 
                 //copy and style content to document fragment.
                 while(readPointer){
@@ -464,6 +449,30 @@ RTEExt.rte = RTEExt.rte || {};
                 //append document fragment to acting root
                 actingRoot.appendChild(styledFragment);
             }
+        },
+
+        /**
+         * Builds the strip definition for stripping styles from descendant nodes.
+         */
+        _buildStripDef: function(styles){
+            var curStyle,
+                stripDef = {
+                    'strip': {
+                        'tagName': this.stylingTagName,
+                        'styles': {}
+                    },
+                    'unwrap': {
+                        'tagName': this.stylingTagName
+                    }
+                };
+
+            for(curStyle in styles){
+                if(styles.hasOwnProperty(curStyle)){
+                    stripDef.strip.styles[curStyle] = /.*/;
+                }
+            }
+
+            return stripDef;
         },
 
         /**
