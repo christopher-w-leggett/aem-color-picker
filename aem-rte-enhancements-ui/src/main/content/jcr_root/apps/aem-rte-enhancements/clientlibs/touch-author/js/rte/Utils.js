@@ -191,6 +191,65 @@ RTEExt.rte.Utils = (function(CUI){
         return newNode;
     }
 
+    function splitTextNode(textNode, startOffset, endOffset){
+        var splitNodes = {
+            beginning: null,
+            middle: null,
+            end: null
+        },
+        normalizedStartOffset,
+        normalizedEndOffset;
+
+        if(textNode && textNode.nodeType === 3){
+            //verify startOffset
+            if(startOffset > textNode.textContent.length){
+                //max startOffset can be text length
+                normalizedStartOffset = textNode.textContent.length;
+            } else if(startOffset > 0){
+                //startOffset is valid value from 1 up to text length
+                normalizedStartOffset = startOffset;
+            } else {
+                //startOffset is either invalid, non existent or 0. set to 0 so beginning split isn't performed.
+                normalizedStartOffset = 0;
+            }
+
+            //verify endOffset
+            if((endOffset < 0 || endOffset === 0 || endOffset > 0) && endOffset < normalizedStartOffset){
+                //min endOffset is that of the normalizedStartOffset.  In this scenario, no middle text node will be
+                //returned.
+                normalizedEndOffset = normalizedStartOffset;
+            } else if((endOffset === 0 || endOffset > 0) && endOffset <= textNode.textContent.length){
+                //endOffset is valid value from normalizedStartOffset up to text length
+                normalizedEndOffset = endOffset;
+            } else {
+                //endOffset is either invalid, non existent or greater than text length.
+                //set to text length so end split isn't performed.
+                normalizedEndOffset = textNode.textContent.length;
+            }
+
+            if(normalizedStartOffset > 0){
+                //we need to do a beginning split up to start offset.
+                splitNodes.beginning = document.createTextNode(
+                    textNode.textContent.substring(0, normalizedStartOffset)
+                );
+            }
+            if(normalizedEndOffset > normalizedStartOffset){
+                //we need to do a middle split from start offset to end offset
+                splitNodes.middle = document.createTextNode(
+                    textNode.textContent.substring(normalizedStartOffset, normalizedEndOffset)
+                );
+            }
+            if(normalizedEndOffset < textNode.textContent.length){
+                //we need to  do an end split from end offset to remaining text
+                splitNodes.end = document.createTextNode(
+                    textNode.textContent.substring(normalizedEndOffset, textNode.textContent.length)
+                );
+            }
+        }
+
+        return splitNodes;
+    }
+
     return {
         getComputedStyle: getComputedStyle,
         unwrap: unwrap,
@@ -198,6 +257,7 @@ RTEExt.rte.Utils = (function(CUI){
         stripDescendantStyle: stripDescendantStyle,
         getAncestors: getAncestors,
         convertTagName: convertTagName,
-        cloneNode: cloneNode
+        cloneNode: cloneNode,
+        splitTextNode: splitTextNode
     };
 })(window.CUI);

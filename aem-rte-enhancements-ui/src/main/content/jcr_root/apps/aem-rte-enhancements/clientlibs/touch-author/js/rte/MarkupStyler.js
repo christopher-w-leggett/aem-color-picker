@@ -59,10 +59,7 @@ RTEExt.rte = RTEExt.rte || {};
                 curStylingNode,
                 tempNode,
                 tempTree,
-                trackTree = false,
-                startUnstyledText,
-                styledText,
-                endUnstyledText,
+                splitTextNodes,
                 foundStartNode = false,
                 foundEndNode = false,
                 i;
@@ -100,32 +97,21 @@ RTEExt.rte = RTEExt.rte || {};
                             foundEndNode = true;
                         }
 
-                        //split text appropriately
-                        startUnstyledText = null;
-                        styledText = null;
-                        endUnstyledText = null;
-                        if(startNode === endNode && (startOffset || (endOffset >= 0 && endOffset < readPointer.textContent.length))){
-                            //start/end are the same, so we need to split the single node.
-                            startUnstyledText = startOffset
-                                ? document.createTextNode(readPointer.textContent.substring(0, startOffset))
-                                : null;
-                            styledText = document.createTextNode(readPointer.textContent.substring(
-                                startOffset || 0, endOffset || readPointer.textContent.length
-                            ));
-                            endUnstyledText = endOffset >= 0 && endOffset < readPointer.textContent.length
-                                ? document.createTextNode(readPointer.textContent.substring(endOffset))
-                                : null;
-                        } else if(startOffset) {
-                            //there is a start offset, so we need to split the start node.
-                            startUnstyledText = document.createTextNode(
-                                readPointer.textContent.substring(0, startOffset)
-                            );
-                            styledText = document.createTextNode(readPointer.textContent.substring(startOffset));
+                        //split node appropriately
+                        if(startNode.nodeType === 3){
+                            if(startNode === endNode){
+                                //start/end are the same, so we need to split three ways.
+                                splitTextNodes = RTEExt.rte.Utils.splitTextNode(startNode, startOffset, endOffset);
+                            } else {
+                                splitTextNodes = RTEExt.rte.Utils.splitTextNode(startNode, startOffset, null);
+                            }
+                        } else {
+                            splitTextNodes = null;
                         }
 
                         //if the beginning portion of our start node is unstyled, just append now
-                        if(startUnstyledText){
-                            writePointer.appendChild(startUnstyledText);
+                        if(splitTextNodes && splitTextNodes.beginning){
+                            writePointer.appendChild(splitTextNodes.beginning);
                         }
 
                         //we need to move our write pointer up to first container node or styling container node
@@ -164,8 +150,10 @@ RTEExt.rte = RTEExt.rte || {};
                         }
 
                         //append styled start node
-                        if(styledText){
-                            writePointer.appendChild(styledText);
+                        if(splitTextNodes){
+                            if(splitTextNodes.middle){
+                                writePointer.appendChild(splitTextNodes.middle);
+                            }
                         } else {
                             writePointer.appendChild(RTEExt.rte.Utils.cloneNode(readPointer));
                         }
@@ -203,8 +191,8 @@ RTEExt.rte = RTEExt.rte || {};
                                 writePointer = tempTree[i];
                             }
 
-                            if(endUnstyledText){
-                                writePointer.appendChild(endUnstyledText);
+                            if(splitTextNodes && splitTextNodes.end){
+                                writePointer.appendChild(splitTextNodes.end);
                             }
                         }
                     } else if(foundStartNode && !foundEndNode && readPointer !== endNode){
@@ -297,13 +285,10 @@ RTEExt.rte = RTEExt.rte || {};
                         foundEndNode = true;
 
                         //split end node appropriately
-                        styledText = null;
-                        endUnstyledText = null;
-                        if(endOffset >= 0 && endOffset < readPointer.textContent.length) {
-                            styledText = document.createTextNode(readPointer.textContent.substring(
-                                0, endOffset
-                            ));
-                            endUnstyledText = document.createTextNode(readPointer.textContent.substring(endOffset));
+                        if(endNode.nodeType === 3){
+                            splitTextNodes = RTEExt.rte.Utils.splitTextNode(endNode, null, endOffset);
+                        } else {
+                            splitTextNodes = null;
                         }
 
                         //open a new styling node if we don't have one
@@ -345,8 +330,10 @@ RTEExt.rte = RTEExt.rte || {};
                         }
 
                         //append styled end node
-                        if(styledText){
-                            writePointer.appendChild(styledText);
+                        if(splitTextNodes){
+                            if(splitTextNodes.middle){
+                                writePointer.appendChild(splitTextNodes.middle);
+                            }
                         } else {
                             writePointer.appendChild(RTEExt.rte.Utils.cloneNode(readPointer));
                         }
@@ -382,8 +369,8 @@ RTEExt.rte = RTEExt.rte || {};
                             writePointer = tempTree[i];
                         }
 
-                        if(endUnstyledText){
-                            writePointer.appendChild(endUnstyledText);
+                        if(splitTextNodes && splitTextNodes.end){
+                            writePointer.appendChild(splitTextNodes.end);
                         }
                     } else {
                         //we are before start node or after end node, just append our clone.
