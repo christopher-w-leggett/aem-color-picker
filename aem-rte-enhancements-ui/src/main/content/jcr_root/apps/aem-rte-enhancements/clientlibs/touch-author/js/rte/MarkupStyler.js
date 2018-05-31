@@ -580,12 +580,11 @@ RTEExt.rte = RTEExt.rte || {};
 
         /**
          * Normalizes tree structure by combining sibling nodes that share the same applicable styles.
-         * TODO: Normalize misses removing empty tags when they contain 1 single empty text node as a child.  We should just handle removing empty text nodes also.
          */
         _normalize: function(node){
             var curNode = node.firstChild,
                 nextNode,
-                removableNode;
+                tempNode;
 
             //normalize non container nodes.
             while(curNode){
@@ -605,30 +604,30 @@ RTEExt.rte = RTEExt.rte || {};
                     curNode.parentNode.removeChild(curNode.nextSibling);
                 }
 
-                //track if we can remove the current node. TODO: This actually doesn't work completely with nested empty tags (e.g. <b><i></i></b> will result in <b></b>)
-                if(curNode.nodeType === 1
-                    && !this._isContainerNode(curNode)
-                    && !this._isStylingContainerNode(curNode)
-                    && !this._isIgnoredNode(curNode)
-                    && !curNode.firstChild){
-                    removableNode = curNode;
-                } else {
-                    removableNode = null;
-                }
-
-                //move to next node, try to move down or across first
-                nextNode = curNode.firstChild || curNode.nextSibling;
-                //no next node, find first sibling of parent structure.  don't go beyond root node
-                while(!nextNode && curNode !== node && curNode.parentNode !== node){
-                    curNode = curNode.parentNode;
+                //move to next node, first try to move down and then across.  don't go beyond root node
+                nextNode = curNode.firstChild;
+                while(!nextNode && curNode !== node){
+                    //move across
                     nextNode = curNode.nextSibling;
+
+                    //grab pointer to parent in case we move up
+                    tempNode = curNode.parentNode;
+
+                    //strip current node if empty
+                    if(curNode.nodeType === 1
+                        && !this._isContainerNode(curNode)
+                        && !this._isStylingContainerNode(curNode)
+                        && !this._isIgnoredNode(curNode)
+                        && !curNode.firstChild){
+                        curNode.parentNode.removeChild(curNode);
+                    } else if(curNode.nodeType === 3 && curNode.textContent.length === 0) {
+                        curNode.parentNode.removeChild(curNode);
+                    }
+
+                    //set current node to parent.
+                    curNode = tempNode;
                 }
                 curNode = nextNode;
-
-                //remove empty nodes
-                if(removableNode){
-                    removableNode.parentNode.removeChild(removableNode);
-                }
             }
 
             //finally normalize text nodes
