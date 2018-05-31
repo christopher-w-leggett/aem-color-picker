@@ -82,7 +82,9 @@ RTEExt.rte = RTEExt.rte || {};
 
             if(startNode && endNode){
                 //determine acting root of start/end nodes.  This needs to be closest non-wrapping ancestor.
-                actingRoot = this._getActingRoot(selection, root);
+                actingRoot = RTEExt.rte.Utils.getCommonAncestor(startNode, endNode, root, function(node){
+                    return node.tagName && (this._isContainerNode(node) || this._isStylingContainerNode(node));
+                }.bind(this));
 
                 //create document fragment to hold new content
                 styledFragment = document.createDocumentFragment();
@@ -430,7 +432,29 @@ RTEExt.rte = RTEExt.rte || {};
                 }
 
                 //normalize nodes
-                this._normalize(styledFragment);
+                RTEExt.rte.Utils.normalize(
+                    styledFragment,
+                    function(node){
+                        return !this._isContainerNode(node)
+                            && !this._isStylingContainerNode(node)
+                            && !this._isIgnoredNode(node);
+                    }.bind(this),
+                    function(node){
+                        var strip = false;
+
+                        if(node.nodeType === 1
+                            && !this._isContainerNode(node)
+                            && !this._isStylingContainerNode(node)
+                            && !this._isIgnoredNode(node)
+                            && !node.firstChild){
+                            strip = true;
+                        } else if(node.nodeType === 3 && node.textContent.length === 0) {
+                            strip = true;
+                        }
+
+                        return strip;
+                    }.bind(this)
+                );
 
                 //remove all children of acting root
                 while(actingRoot.firstChild){
@@ -442,42 +466,25 @@ RTEExt.rte = RTEExt.rte || {};
             }
         },
 
-        _getActingRoot: function(selection, root){
-            var startNodeAncestors = RTEExt.rte.Utils.getAncestors(selection.startNode, root),
-                endNodeAncestors = RTEExt.rte.Utils.getAncestors(selection.endNode, root),
-                activeRoot = null,
-                startIndex = 0,
-                endIndex = 0;
-
-            while(activeRoot === null && startIndex < startNodeAncestors.length){
-                if(startNodeAncestors[startIndex].tagName
-                    && (this._isContainerNode(startNodeAncestors[startIndex])
-                        || this._isStylingContainerNode(startNodeAncestors[startIndex]))
-                    && startNodeAncestors[startIndex] === endNodeAncestors[endIndex]){
-                    activeRoot = startNodeAncestors[startIndex];
-                }
-
-                //move to next set of checks
-                if(endIndex < endNodeAncestors.length - 1){
-                    endIndex++;
-                } else {
-                    startIndex++;
-                    endIndex = 0;
-                }
-            }
-
-            return activeRoot;
-        },
-
+        /**
+         * Determines if the provided node is a container node, meaning styling nodes must be placed within it.
+         */
         _isContainerNode: function(node){
             return node.tagName && this.containerTags.includes(node.tagName.toLowerCase());
         },
 
+        /**
+         * Determines if the provided node is a styling container node, meaning it serves as a container node but
+         * may also be wrapped within existing styling tags (e.g. an <a/> tag wrapped in an <i/> tag or <i><a/></i>.
+         */
         _isStylingContainerNode: function(node){
             return node.tagName && node.tagName.toLowerCase() !== this.stylingTagName
                 && this.stylingContainerTags.includes(node.tagName.toLowerCase());
         },
 
+        /**
+         * Determines if the provided node is an ignored node, meaning no special processing is performed on it.
+         */
         _isIgnoredNode: function(node){
             return node.tagName && this.ignoredTags.includes(node.tagName.toLowerCase());
         },
@@ -498,7 +505,8 @@ RTEExt.rte = RTEExt.rte || {};
         },
 
         /**
-         * Checks if provided node is a styling node.
+         * Checks if provided node is a styling node.  A styling node shares the stylingTagName and isn't an AEM
+         * placeholder node.
          */
         _isStylingNode: function(node){
             //a styling node shares the same styling tag name
@@ -511,115 +519,6 @@ RTEExt.rte = RTEExt.rte || {};
             }
 
             return stylingNode;
-        },
-
-        /**
-         * Determines if two nodes are the same.
-         */
-        _isEqual: function(node1, node2){
-            var equal = false,
-                node2Attributes = {},
-                node2ClassNames = {},
-                i;
-
-            //only compare elements.
-            if(node1.nodeType === 1 && node2.nodeType === 1){
-                //compare tag name
-                equal = node1.tagName === node2.tagName;
-
-                //compare attribute length
-                equal = equal && node1.attributes.length === node2.attributes.length;
-
-                //compare style length
-                equal = equal && node1.style.length === node2.style.length;
-
-                //compare class length
-                equal = equal && node1.classList.length === node2.classList.length;
-
-                //compare specific attributes
-                if(equal){
-                    for(i = 0; i < node2.attributes.length; i++){
-                        node2Attributes[node2.attributes[i].name] = node2.attributes[i].value;
-                    }
-                    for(i = 0; i < node1.attributes.length && equal; i++){
-                        equal = node2Attributes.hasOwnProperty(node1.attributes[i].name)
-                            && node1.attributes[i].value === node2Attributes[node1.attributes[i].name];
-                    }
-                }
-
-                //compare specific styles
-                for(i = 0; i < node1.style.length && equal; i++){
-                    equal = node1.style[node1.style[i]] === node2.style[node1.style[i]];
-                }
-
-                //compare specific classes
-                if(equal){
-                    for(i = 0; i < node2.classList.length; i++){
-                        node2ClassNames[node2.classList[i]] = true;
-                    }
-                    for(i = 0; i < node1.classList.length && equal; i++){
-                        equal = node2ClassNames.hasOwnProperty(node1.classList[i]);
-                    }
-                }
-            }
-
-            return equal;
-        },
-
-        /**
-         * Normalizes tree structure by combining sibling nodes that share the same applicable styles.
-         */
-        _normalize: function(node){
-            var curNode = node.firstChild,
-                nextNode,
-                tempNode;
-
-            //normalize non container nodes.
-            while(curNode){
-                //merge next sibling until we can't
-                while(curNode.nextSibling
-                    && !this._isContainerNode(curNode)
-                    && !this._isContainerNode(curNode.nextSibling)
-                    && !this._isStylingContainerNode(curNode)
-                    && !this._isStylingContainerNode(curNode.nextSibling)
-                    && !this._isIgnoredNode(curNode)
-                    && !this._isIgnoredNode(curNode.nextSibling)
-                    && this._isEqual(curNode, curNode.nextSibling)){
-                    //merge siblings.
-                    while(curNode.nextSibling.firstChild){
-                        curNode.appendChild(curNode.nextSibling.firstChild);
-                    }
-                    curNode.parentNode.removeChild(curNode.nextSibling);
-                }
-
-                //move to next node, first try to move down and then across.  don't go beyond root node
-                nextNode = curNode.firstChild;
-                while(!nextNode && curNode !== node){
-                    //move across
-                    nextNode = curNode.nextSibling;
-
-                    //grab pointer to parent in case we move up
-                    tempNode = curNode.parentNode;
-
-                    //strip current node if empty
-                    if(curNode.nodeType === 1
-                        && !this._isContainerNode(curNode)
-                        && !this._isStylingContainerNode(curNode)
-                        && !this._isIgnoredNode(curNode)
-                        && !curNode.firstChild){
-                        curNode.parentNode.removeChild(curNode);
-                    } else if(curNode.nodeType === 3 && curNode.textContent.length === 0) {
-                        curNode.parentNode.removeChild(curNode);
-                    }
-
-                    //set current node to parent.
-                    curNode = tempNode;
-                }
-                curNode = nextNode;
-            }
-
-            //finally normalize text nodes
-            node.normalize();
         }
     });
 })();

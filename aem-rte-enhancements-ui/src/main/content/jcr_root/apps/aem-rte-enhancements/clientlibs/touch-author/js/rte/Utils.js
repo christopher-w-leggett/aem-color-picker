@@ -136,6 +136,9 @@ RTEExt.rte.Utils = (function(CUI){
         }
     }
 
+    /**
+     * Gets all ancestor nodes from the provided node to the provided root.
+     */
     function getAncestors(node, rootNode){
         var ancestors = [],
             curNode;
@@ -153,6 +156,39 @@ RTEExt.rte.Utils = (function(CUI){
         return ancestors;
     }
 
+    /**
+     * Gets the common ancestor shared between 2 nodes up to the provided root node.  If a validAncestor function is
+     * provided, it will be used to consider which ancestors may be compared otherwise all ancestors will be compared.
+     */
+    function getCommonAncestor(node1, node2, root, validAncestor){
+        var node1Ancestors = getAncestors(node1, root),
+            node2Ancestors = getAncestors(node2, root),
+            commonAncestor = null,
+            node1Index = 0,
+            node2Index = 0;
+
+        while(commonAncestor === null && node1Index < node1Ancestors.length){
+            if((!validAncestor || validAncestor(node1Ancestors[node1Index]))
+                && node1Ancestors[node1Index] === node2Ancestors[node2Index]){
+                commonAncestor = node1Ancestors[node1Index];
+            }
+
+            //move to next set of checks
+            if(node2Index < node2Ancestors.length - 1){
+                node2Index++;
+            } else {
+                node1Index++;
+                node2Index = 0;
+            }
+        }
+
+        return commonAncestor;
+    }
+
+    /**
+     * Converts the provided node tag to the target tagName.  This is done by creating a new element with the target
+     * tagName, copying all attributes and children from the original and replacing the original.
+     */
     function convertTagName(node, tagName){
         var newNode,
             i;
@@ -175,6 +211,9 @@ RTEExt.rte.Utils = (function(CUI){
         }
     }
 
+    /**
+     * Clones the provided node by creating a new node of the same type and copying attributes and/or text.
+     */
     function cloneNode(node){
         var newNode = null,
             i;
@@ -191,6 +230,9 @@ RTEExt.rte.Utils = (function(CUI){
         return newNode;
     }
 
+    /**
+     * Splits a text node into 3 possible parts depending on the startOffset and endOffset provided.
+     */
     function splitTextNode(textNode, startOffset, endOffset){
         var splitNodes = {
             beginning: null,
@@ -250,14 +292,123 @@ RTEExt.rte.Utils = (function(CUI){
         return splitNodes;
     }
 
+    /**
+     * Determines if two elements are similar.
+     */
+    function similarElements(element1, element2){
+        var equal = false,
+            element2Attributes = {},
+            element2ClassNames = {},
+            i;
+
+        //only compare elements.
+        if(element1.nodeType === 1 && element2.nodeType === 1){
+            //compare tag name
+            equal = element1.tagName === element2.tagName;
+
+            //compare attribute length
+            equal = equal && element1.attributes.length === element2.attributes.length;
+
+            //compare style length
+            equal = equal && element1.style.length === element2.style.length;
+
+            //compare class length
+            equal = equal && element1.classList.length === element2.classList.length;
+
+            //compare specific attributes
+            if(equal){
+                for(i = 0; i < element2.attributes.length; i++){
+                    element2Attributes[element2.attributes[i].name] = element2.attributes[i].value;
+                }
+                for(i = 0; i < element1.attributes.length && equal; i++){
+                    equal = element2Attributes.hasOwnProperty(element1.attributes[i].name)
+                        && element1.attributes[i].value === element2Attributes[element1.attributes[i].name];
+                }
+            }
+
+            //compare specific styles
+            for(i = 0; i < element1.style.length && equal; i++){
+                equal = element1.style[element1.style[i]] === element2.style[element1.style[i]];
+            }
+
+            //compare specific classes
+            if(equal){
+                for(i = 0; i < element2.classList.length; i++){
+                    element2ClassNames[element2.classList[i]] = true;
+                }
+                for(i = 0; i < element1.classList.length && equal; i++){
+                    equal = element2ClassNames.hasOwnProperty(element1.classList[i]);
+                }
+            }
+        }
+
+        return equal;
+    }
+
+    /**
+     * Normalizes tree structure by combining similar sibling elements, combining sibling text nodes, stripping
+     * empty elements and stripping empty text nodes.
+     *
+     * If a mergeable function is provided it will be used to determine if two elements may be merged.  If not provided,
+     * sibling elements will not be merged.
+     *
+     * If a strippable function is provided it will be used to determine if a node may be stripped.  If not provided,
+     * nodes will not be stripped.
+     */
+    function normalize(node, mergeable, strippable){
+        var curNode = node.firstChild,
+            nextNode,
+            tempNode;
+
+        //normalize non container nodes.
+        while(curNode){
+            //merge next sibling until we can't
+            while(curNode.nextSibling
+                && mergeable
+                && mergeable(curNode)
+                && mergeable(curNode.nextSibling)
+                && similarElements(curNode, curNode.nextSibling)){
+                //merge siblings.
+                while(curNode.nextSibling.firstChild){
+                    curNode.appendChild(curNode.nextSibling.firstChild);
+                }
+                curNode.parentNode.removeChild(curNode.nextSibling);
+            }
+
+            //move to next node, first try to move down and then across.  don't go beyond root node
+            nextNode = curNode.firstChild;
+            while(!nextNode && curNode !== node){
+                //move across
+                nextNode = curNode.nextSibling;
+
+                //grab pointer to parent in case we move up
+                tempNode = curNode.parentNode;
+
+                //strip current node if empty
+                if(strippable && strippable(curNode)){
+                    curNode.parentNode.removeChild(curNode);
+                }
+
+                //set current node to parent.
+                curNode = tempNode;
+            }
+            curNode = nextNode;
+        }
+
+        //finally normalize text nodes
+        node.normalize();
+    }
+
     return {
         getComputedStyle: getComputedStyle,
         unwrap: unwrap,
         canUnwrap: canUnwrap,
         stripDescendantStyle: stripDescendantStyle,
         getAncestors: getAncestors,
+        getCommonAncestor: getCommonAncestor,
         convertTagName: convertTagName,
         cloneNode: cloneNode,
-        splitTextNode: splitTextNode
+        splitTextNode: splitTextNode,
+        normalize: normalize
     };
 })(window.CUI);
