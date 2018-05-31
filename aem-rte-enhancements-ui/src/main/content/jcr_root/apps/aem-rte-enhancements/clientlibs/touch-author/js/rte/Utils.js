@@ -98,14 +98,14 @@ RTEExt.rte.Utils = (function(CUI){
      *
      * criteria = {
      *     'strip': {
-     *         'tagName': <regex>,
+     *         'tagName': <tag>,
      *         'styles': {
      *             '<style-name>': <regex>,
      *             ...
      *         }
      *     },
      *     'unwrap': {
-     *         'tagName': <regex>,
+     *         'tagName': <tag>,
      *     }
      * }
      */
@@ -115,7 +115,7 @@ RTEExt.rte.Utils = (function(CUI){
             markerNode;
 
         while(curChild){
-            if(curChild.style && curChild.tagName && criteria.strip.tagName.test(curChild.tagName)){
+            if(curChild.style && curChild.tagName && curChild.tagName.toLowerCase() === criteria.strip.tagName){
                 for(curStyle in criteria.strip.styles){
                     if(criteria.strip.styles.hasOwnProperty(curStyle)){
                         if(criteria.strip.styles[curStyle].test(curChild.style[curStyle])){

@@ -67,10 +67,10 @@ RTEExt.rte = RTEExt.rte || {};
                 foundEndNode = false,
                 i;
 
-            //determine strip definition TODO: change so method doesn't need regexp to strip tags.
+            //determine strip definition
             stripDef = {
                 'strip': {
-                    'tagName': new RegExp(this.stylingTagName, 'i'),
+                    'tagName': this.stylingTagName,
                     'styles': {}
                 },
                 'unwrap': {
