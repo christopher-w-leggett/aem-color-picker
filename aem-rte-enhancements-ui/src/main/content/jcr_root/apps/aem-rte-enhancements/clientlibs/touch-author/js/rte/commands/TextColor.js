@@ -27,10 +27,8 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         },
 
         execute: function(execDef){
-            if(RTEExt.rte.Utils.isRangeSelection(execDef.selection)){
-                var styler = new RTEExt.rte.MarkupStyler('span');
-                styler.style(execDef.selection, {'color': execDef.value}, execDef.editContext.root);
-            }
+            var styler = new RTEExt.rte.MarkupStyler('span');
+            styler.style(execDef.selection, {'color': execDef.value}, execDef.editContext.root);
         }
     });
 
