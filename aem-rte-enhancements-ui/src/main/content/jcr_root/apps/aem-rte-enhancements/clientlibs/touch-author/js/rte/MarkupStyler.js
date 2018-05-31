@@ -487,7 +487,8 @@ RTEExt.rte = RTEExt.rte || {};
         },
 
         _isStylingContainerNode: function(node){
-            return node.tagName && this.stylingContainerTags.includes(node.tagName.toLowerCase());
+            return node.tagName && node.tagName.toLowerCase() !== this.stylingTagName
+                && this.stylingContainerTags.includes(node.tagName.toLowerCase());
         },
 
         _isIgnoredNode: function(node){

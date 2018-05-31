@@ -1,7 +1,6 @@
 RTEExt = window.RTEExt || {};
 RTEExt.rte = RTEExt.rte || {};
 RTEExt.rte.commands = RTEExt.rte.commands || {};
-//TODO: Don't allow nested mark tags
 (function(CUI){
     "use strict";
 
@@ -33,8 +32,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                 styler.style(
                     execDef.selection,
                     {
-                        'background-color': execDef.value,
-                        'color': 'inherit'
+                        'background-color': execDef.value
                     },
                     execDef.editContext.root
                 );
