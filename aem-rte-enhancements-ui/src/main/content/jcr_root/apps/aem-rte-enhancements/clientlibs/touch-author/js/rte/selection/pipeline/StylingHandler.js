@@ -32,45 +32,32 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             chain.next().startSelection(chain);
         },
 
-        /* TODO:
-        <p>
-            text
-            <b>
-                <i>
-                    some text
-                    <a><span>styled</span> link</a>
-                    and after text
-                </i>
-            </b>
-            post text
-        </p>
-        */
         beginInnerNode: function(node, chain){
             var clonedNode = RTEExt.rte.Utils.cloneNode(node);
 
-            if(RTEExt.rte.Utils.isContainerNode(node)
-                || RTEExt.rte.Utils.isStylingContainerNode(node)
-                || RTEExt.rte.Utils.isIgnoredNode(node)){
+            if(this._isContainer(node)){
                 this._closeStylingNode(chain);
             } else if(!this._activeStylingNode) {
+                this._openStylingNode(clonedNode, chain);
+            } else if(this._isStylingNode(clonedNode)){
+                //we encountered a styling node within our open styling node, so flatten the structure
+                this._closeStylingNode(chain);
                 this._openStylingNode(clonedNode, chain);
             }
 
             //track original and cloned node (if it wasn't added as the active styling node)
             this._originalTree.push(node);
-            if(clonedNode !== this._activeStylingNode){
+            if(!this._isStylingNode(clonedNode)){
+                this._stripStyles(clonedNode);
                 this._styledTree.push(clonedNode);
-
-                //only send clone to next handler if it wasn't used as the active styling node.
                 chain.next().beginInnerNode(clonedNode, chain);
             }
         },
 
         endInnerNode: function(node, chain){
             //close styling node if node is container node or styling container node.
-            if(RTEExt.rte.Utils.isContainerNode(node)
-                || RTEExt.rte.Utils.isStylingContainerNode(node)
-                || RTEExt.rte.Utils.isIgnoredNode(node)){
+            //also close if we are leaving a styling node from the original tree because we have flattened this.
+            if(this._isContainer(node) || this._isStylingNode(this._originalTree[this._originalTree.length - 1])){
                 this._closeStylingNode(chain);
             } else if(this._styledTree[this._styledTree.length - 1] === this._activeStylingNode){
                 //we are moving out of active styled node, so clear it
@@ -124,49 +111,33 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         /**
-         * Opens a new styling node, if one is not open, and rebuilds active tree as necessary.
+         * Opens a new styling node and rebuilds active tree as necessary.
          */
-        _openStylingNode: function(stylingNode, chain){
-            var tempTree,
-                i;
-
-            //determine any hierarchy that will need to be recreated.
-            tempTree = [];
-            i = this._originalTree.length - 1;
-            while(i >= 0
-                && !RTEExt.rte.Utils.isContainerNode(this._originalTree[i])
-                && !RTEExt.rte.Utils.isStylingContainerNode(this._originalTree[i])){
-                //clone and track tree
-                tempTree.push(RTEExt.rte.Utils.cloneNode(this._originalTree[i]));
-
-                //reposition
-                i--;
-            }
+        _openStylingNode: function(node, chain){
+            var containerTree = this._getContainerTree(),
+                currentStyling = this._getAggregateStyling(node, containerTree),
+                tempNode;
 
             //move styled tree up to first container node or styling container node.
-            while(this._styledTree.length
-                && !RTEExt.rte.Utils.isContainerNode(this._styledTree[this._styledTree.length - 1])
-                && !RTEExt.rte.Utils.isStylingContainerNode(this._styledTree[this._styledTree.length - 1])){
+            while(this._styledTree.length && !this._isContainer(this._styledTree[this._styledTree.length - 1])){
                 chain.next().endInnerNode(this._styledTree.pop(), chain);
             }
 
-            //set or create styling node
-            if(tempTree.length && this._isStylingNode(tempTree[tempTree.length - 1])){
-                this._activeStylingNode = tempTree.pop();
-            } else if(!tempTree.length && this._isStylingNode(stylingNode)){
-                this._activeStylingNode = stylingNode;
-            } else {
-                this._activeStylingNode = document.createElement(this._stylingTagName);
-            }
+            //create styling node
+            this._activeStylingNode = document.createElement(this._stylingTagName);
+            this._applyStyles(this._activeStylingNode, currentStyling);
             this._applyStyles(this._activeStylingNode);
             this._styledTree.push(this._activeStylingNode);
             chain.next().beginInnerNode(this._activeStylingNode, chain);
 
-            //now recreate hierarchy, stripping styles
-            for(i = tempTree.length - 1; i >=0; i--){
-                this._stripStyles(tempTree[i]);
-                this._styledTree.push(tempTree[i]);
-                chain.next().beginInnerNode(tempTree[i], chain);
+            //now recreate container tree, stripping styles and avoiding nested styling tags.
+            while(containerTree.length){
+                tempNode = containerTree.shift();
+                if(!this._isStylingNode(tempNode)){
+                    this._stripStyles(tempNode);
+                    this._styledTree.push(tempNode);
+                    chain.next().beginInnerNode(tempNode, chain);
+                }
             }
         },
 
@@ -174,49 +145,36 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
          * Closes any open styling node and rebuilds active tree as necessary.
          */
         _closeStylingNode: function(chain){
-            var tempTree,
-                i;
-
-            //determine any hierarchy that will need to be recreated.
-            tempTree = [];
-            i = this._originalTree.length - 1;
-            while(i >= 0
-                && !RTEExt.rte.Utils.isContainerNode(this._originalTree[i])
-                && !RTEExt.rte.Utils.isStylingContainerNode(this._originalTree[i])){
-                //clone and track tree
-                tempTree.push(RTEExt.rte.Utils.cloneNode(this._originalTree[i]));
-
-                //reposition
-                i--;
-            }
+            var containerTree = this._getContainerTree(),
+                tempNode;
 
             //move styled tree up to first container node or styling container node.
-            while(this._styledTree.length
-                && !RTEExt.rte.Utils.isContainerNode(this._styledTree[this._styledTree.length - 1])
-                && !RTEExt.rte.Utils.isStylingContainerNode(this._styledTree[this._styledTree.length - 1])){
+            while(this._styledTree.length && !this._isContainer(this._styledTree[this._styledTree.length - 1])){
                 chain.next().endInnerNode(this._styledTree.pop(), chain);
             }
 
             //clear active styling node
             this._activeStylingNode = null;
 
-            //now recreate hierarchy
-            for(i = tempTree.length - 1; i >=0; i--){
-                this._styledTree.push(tempTree[i]);
-                chain.next().beginInnerNode(tempTree[i], chain);
+            //now recreate container tree
+            while(containerTree.length){
+                tempNode = containerTree.shift();
+                this._styledTree.push(tempNode);
+                chain.next().beginInnerNode(tempNode, chain);
             }
         },
 
         /**
          * Applies styles to a node.
          */
-        _applyStyles: function(node){
-            var curStyle;
+        _applyStyles: function(node, styles){
+            var activeStyles = styles || this._styles,
+                curStyle;
 
             if(node && node.style){
-                for(curStyle in this._styles){
-                    if(this._styles.hasOwnProperty(curStyle)){
-                        node.style[curStyle] = this._styles[curStyle];
+                for(curStyle in activeStyles){
+                    if(activeStyles.hasOwnProperty(curStyle)){
+                        node.style[curStyle] = activeStyles[curStyle];
                     }
                 }
             }
@@ -252,6 +210,63 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             }
 
             return stylingNode;
+        },
+
+        _getAggregateStyling: function(node, tree){
+            var styles = {},
+                i,
+                j;
+
+            //get styles from active node
+            if(this._isStylingNode(node)){
+                for(i = 0; i < node.style.length; i++){
+                    styles[node.style[i]] = node.style[node.style[i]];
+                }
+            }
+
+            //aggregate styles
+            for(i = tree.length - 1; i >= 0; i--){
+                if(this._isStylingNode(tree[i])){
+                    for(j = 0; j < tree[i].style.length; j++){
+                        if(!styles[tree[i].style[j]]){
+                            styles[tree[i].style[j]] = tree[i].style[tree[i].style[j]];
+                        }
+                    }
+                }
+            }
+
+            return styles;
+        },
+
+        /**
+         * Gets the localized tree of the current container or styling container.
+         */
+        _getContainerTree: function(){
+            var containerTree = [],
+                i;
+
+            //determine container hierarchy.
+            i = this._originalTree.length - 1;
+            while(i >= 0 && !this._isContainer(this._originalTree[i])){
+                //clone and track tree
+                containerTree.push(RTEExt.rte.Utils.cloneNode(this._originalTree[i]));
+
+                //reposition
+                i--;
+            }
+
+            return containerTree.reverse();
+        },
+
+        /**
+         * Determines if a node is a container node, styling container node, or ignored node.
+         */
+        _isContainer: function(node){
+            return RTEExt.rte.Utils.isContainerNode(node)
+                || (node.tagName
+                    && node.tagName.toLowerCase() !== this._stylingTagName
+                    && RTEExt.rte.Utils.isStylingContainerNode(node))
+                || RTEExt.rte.Utils.isIgnoredNode(node);
         }
     });
 })();

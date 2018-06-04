@@ -27,9 +27,6 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         },
 
         execute: function(execDef){
-//            var styler = new RTEExt.rte.MarkupStyler('span');
-//            styler.style(execDef.selection, {'color': execDef.value}, execDef.editContext.root);
-            //TODO: need to be able to get acting root here to minimize execution.
             var startNode = execDef.selection.startNode,
                 endNode = execDef.selection.endNode,
                 root = execDef.editContext.root,
@@ -52,28 +49,6 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
             //style
             pipeline.run();
-
-
-//            var selection = new RTEExt.rte.Selection(
-//                    execDef.selection.startNode,
-//                    execDef.selection.startOffset,
-//                    execDef.selection.endNode,
-//                    execDef.selection.endOffset,
-//                    execDef.editContext.root
-//                ),
-//                stylingNodeWriter = new RTEExt.rte.StylingNodeWriter('span', {'color': execDef.value}),
-//                selectionStylingVisitor = new RTEExt.rte.SelectionStylingVisitor(stylingNodeWriter);
-//
-//            //style
-//            selection.accept(selectionStylingVisitor);
-//
-//            //remove all children of acting root
-//            while(execDef.editContext.root.firstChild){
-//                execDef.editContext.root.removeChild(execDef.editContext.root.firstChild);
-//            }
-//
-//            //append document fragment to acting root
-//            execDef.editContext.root.appendChild(stylingNodeWriter.getStyledFragment());
         }
     });
 
