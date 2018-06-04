@@ -3,6 +3,39 @@ RTEExt.rte = RTEExt.rte || {};
 RTEExt.rte.Utils = (function(CUI){
     "use strict";
 
+    var containerTags = [
+            'p',
+            'div',
+            'h1',
+            'h2',
+            'h3',
+            'h4',
+            'h5',
+            'h6',
+            'blockquote',
+            'pre',
+            'li',
+            'caption',
+            'address',
+            'th',
+            'td'
+        ],
+
+        stylingContainerTags = [
+            'a',
+            'mark'
+        ],
+
+        ignoredTags = [
+            'ul',
+            'ol',
+            'table',
+            'tbody',
+            'thead',
+            'tfoot',
+            'tr'
+        ];
+
     /**
      * Gets the computed style of the current selection.  If a tagName is provided in the criteria, the closest parent
      * with that tagName will be considered.
@@ -399,6 +432,28 @@ RTEExt.rte.Utils = (function(CUI){
         node.normalize();
     }
 
+    /**
+     * Determines if the provided node is a container node, meaning styling nodes must be placed within it.
+     */
+    function isContainerNode(node){
+        return node.tagName && containerTags.includes(node.tagName.toLowerCase());
+    }
+
+    /**
+     * Determines if the provided node is a styling container node, meaning it serves as a container node but
+     * may also be wrapped within existing styling tags (e.g. an <a/> tag wrapped in an <i/> tag or <i><a/></i>.
+     */
+    function isStylingContainerNode(node){
+        return node.tagName && stylingContainerTags.includes(node.tagName.toLowerCase());
+    }
+
+    /**
+     * Determines if the provided node is an ignored node, meaning no special processing is performed on it.
+     */
+    function isIgnoredNode(node){
+        return node.tagName && ignoredTags.includes(node.tagName.toLowerCase());
+    }
+
     return {
         getComputedStyle: getComputedStyle,
         unwrap: unwrap,
@@ -409,6 +464,9 @@ RTEExt.rte.Utils = (function(CUI){
         convertTagName: convertTagName,
         cloneNode: cloneNode,
         splitTextNode: splitTextNode,
-        normalize: normalize
+        normalize: normalize,
+        isContainerNode: isContainerNode,
+        isStylingContainerNode: isStylingContainerNode,
+        isIgnoredNode: isIgnoredNode
     };
 })(window.CUI);

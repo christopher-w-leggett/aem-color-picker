@@ -85,12 +85,12 @@ RTEExt.rte = RTEExt.rte || {};
                         }
 
                         //split node appropriately
-                        if(startNode.nodeType === 3){
-                            if(startNode === endNode){
+                        if(readPointer.nodeType === 3){
+                            if(foundEndNode){
                                 //start/end are the same, so we need to split three ways.
-                                splitTextNodes = RTEExt.rte.Utils.splitTextNode(startNode, startOffset, endOffset);
+                                splitTextNodes = RTEExt.rte.Utils.splitTextNode(readPointer, startOffset, endOffset);
                             } else {
-                                splitTextNodes = RTEExt.rte.Utils.splitTextNode(startNode, startOffset, null);
+                                splitTextNodes = RTEExt.rte.Utils.splitTextNode(readPointer, startOffset, null);
                             }
                         } else {
                             splitTextNodes = null;
@@ -272,8 +272,8 @@ RTEExt.rte = RTEExt.rte || {};
                         foundEndNode = true;
 
                         //split end node appropriately
-                        if(endNode.nodeType === 3){
-                            splitTextNodes = RTEExt.rte.Utils.splitTextNode(endNode, null, endOffset);
+                        if(readPointer.nodeType === 3){
+                            splitTextNodes = RTEExt.rte.Utils.splitTextNode(readPointer, null, endOffset);
                         } else {
                             splitTextNodes = null;
                         }
