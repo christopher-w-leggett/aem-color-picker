@@ -401,6 +401,21 @@ RTEExt.rte.Utils = (function(CUI){
         return node.tagName && ignoredTags.includes(node.tagName.toLowerCase());
     }
 
+    /**
+     * Determines if a node is considered content.
+     */
+    function isContentNode(node){
+        var isContent = node.nodeType === 3;
+
+        if(!isContent && node.nodeType === 1){
+            //TODO: verify and flush this out.
+            isContent = node.tagName.toLowerCase() === 'br'
+                || node.tagName.toLowerCase() === 'img';
+        }
+
+        return isContent;
+    }
+
     return {
         getComputedStyle: getComputedStyle,
         unwrap: unwrap,
@@ -413,6 +428,7 @@ RTEExt.rte.Utils = (function(CUI){
         normalize: normalize,
         isContainerNode: isContainerNode,
         isStylingContainerNode: isStylingContainerNode,
-        isIgnoredNode: isIgnoredNode
+        isIgnoredNode: isIgnoredNode,
+        isContentNode: isContentNode
     };
 })(window.CUI);

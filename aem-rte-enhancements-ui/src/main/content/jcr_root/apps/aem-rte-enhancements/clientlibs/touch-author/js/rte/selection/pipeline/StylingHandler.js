@@ -95,7 +95,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             this._addToQueue(clonedNode, false, chain.next().endInnerNode.bind(chain.next(), clonedNode, chain));
 
             //flush queue if ending content node
-            if(this._isContentNode(clonedNode)){
+            if(RTEExt.rte.Utils.isContentNode(clonedNode)){
                 this._flushQueue();
             }
         },
@@ -138,7 +138,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             this._addToQueue(clonedNode, false, chain.next().endOuterNode.bind(chain.next(), clonedNode, chain));
 
             //flush queue if ending content node
-            if(this._isContentNode(clonedNode)){
+            if(RTEExt.rte.Utils.isContentNode(clonedNode)){
                 this._flushQueue();
             }
         },
@@ -189,7 +189,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                     localQueue.push(tempQueueEntry);
 
                     //if we encounter content, flush queue up to this point as we know we want to keep these records
-                    if(this._isContentNode(tempQueueEntry.node)){
+                    if(RTEExt.rte.Utils.isContentNode(tempQueueEntry.node)){
                         //write queue up to this point
                         while(localQueue.length){
                             localQueue.shift().callback();
@@ -217,22 +217,6 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             while(localQueue.length){
                 this._stylingQueue.push(localQueue.shift());
             }
-        },
-
-        /**
-         * Determines if a node is considered content.
-         */
-        //TODO: move this to Utils so we can use elsewhere.
-        _isContentNode: function(node){
-            var isContent = node.nodeType === 3;
-
-            if(!isContent && node.nodeType === 1){
-                //TODO: verify and flush this out.
-                isContent = node.tagName.toLowerCase() === 'br'
-                    || node.tagName.toLowerCase() === 'img';
-            }
-
-            return isContent;
         },
 
         /**
