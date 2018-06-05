@@ -336,15 +336,12 @@ RTEExt.rte.Utils = (function(CUI){
     }
 
     /**
-     * Normalizes tree structure by combining similar siblings and stripping empty nodes.
+     * Normalizes tree structure by combining similar siblings.
      *
      * If a mergeable function is provided it will be used to determine if two elements may be merged.  If not provided,
      * sibling elements will not be merged.
-     *
-     * If a strippable function is provided it will be used to determine if a node may be stripped.  If not provided,
-     * nodes will not be stripped.
      */
-    function normalize(node, mergeable, strippable){
+    function normalize(node, mergeable){
         var curNode = node.firstChild,
             nextNode,
             tempNode;
@@ -370,16 +367,8 @@ RTEExt.rte.Utils = (function(CUI){
                 //move across
                 nextNode = curNode.nextSibling;
 
-                //grab pointer to parent in case we move up
-                tempNode = curNode.parentNode;
-
-                //strip current node if empty
-                if(strippable && strippable(curNode)){
-                    curNode.parentNode.removeChild(curNode);
-                }
-
                 //set current node to parent.
-                curNode = tempNode;
+                curNode = curNode.parentNode;
             }
             curNode = nextNode;
         }

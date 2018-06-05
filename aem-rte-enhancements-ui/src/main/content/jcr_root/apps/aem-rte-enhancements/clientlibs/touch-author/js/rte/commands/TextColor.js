@@ -53,22 +53,6 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                                 return !RTEExt.rte.Utils.isContainerNode(node)
                                     && !RTEExt.rte.Utils.isStylingContainerNode(node, stylingTagName)
                                     && !RTEExt.rte.Utils.isIgnoredNode(node);
-                            },
-                            function(node){
-                                var strip = false;
-
-                                //TODO: Verify <br/>, <img/> and other self closing tags won't have an issue here.
-                                if(node.nodeType === 1
-                                    && !RTEExt.rte.Utils.isContainerNode(node)
-                                    && !RTEExt.rte.Utils.isStylingContainerNode(node, stylingTagName)
-                                    && !RTEExt.rte.Utils.isIgnoredNode(node)
-                                    && !node.firstChild){
-                                    strip = true;
-                                } else if(node.nodeType === 3 && node.textContent.length === 0) {
-                                    strip = true;
-                                }
-
-                                return strip;
                             }
                         );
                     }
