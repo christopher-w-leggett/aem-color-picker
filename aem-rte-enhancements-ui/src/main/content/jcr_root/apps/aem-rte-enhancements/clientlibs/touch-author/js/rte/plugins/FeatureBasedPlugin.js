@@ -4,6 +4,12 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
 (function(CUI, $){
     "use strict";
 
+    /*
+        TODO: Feature ideas:
+        auto#block (bulleted list, numbered list, headings, block quote), auto#inline (bold, italic, code)
+        format-ext#strikethrough, format-ext#code
+        font#size, font#family,
+    */
     RTEExt.rte.plugins.FeatureBasedPlugin = new Class({
         toString: 'FeatureBasedPlugin',
 
