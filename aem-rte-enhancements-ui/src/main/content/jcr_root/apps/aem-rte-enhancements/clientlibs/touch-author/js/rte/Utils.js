@@ -127,49 +127,6 @@ RTEExt.rte.Utils = (function(CUI){
     }
 
     /**
-     * Strips styles from descendant nodes.  Any tag matching the unwrap tagName without any styles will be unwrapped.
-     *
-     * criteria = {
-     *     'strip': {
-     *         'tagName': <tag>,
-     *         'styles': {
-     *             '<style-name>': <regex>,
-     *             ...
-     *         }
-     *     },
-     *     'unwrap': {
-     *         'tagName': <tag>,
-     *     }
-     * }
-     */
-    function stripDescendantStyle(node, criteria){
-        var curChild = node.firstChild,
-            curStyle,
-            markerNode;
-
-        while(curChild){
-            if(curChild.style && curChild.tagName && curChild.tagName.toLowerCase() === criteria.strip.tagName){
-                for(curStyle in criteria.strip.styles){
-                    if(criteria.strip.styles.hasOwnProperty(curStyle)){
-                        if(criteria.strip.styles[curStyle].test(curChild.style[curStyle])){
-                            curChild.style[curStyle] = '';
-                        }
-                    }
-                }
-            }
-
-            if(criteria.unwrap.tagName && canUnwrap(curChild, criteria.unwrap.tagName)){
-                markerNode = curChild.previousSibling || node;
-                unwrap(curChild);
-                curChild = markerNode === node ? markerNode.firstChild : markerNode.nextSibling;
-            }else{
-                stripDescendantStyle(curChild, criteria);
-                curChild = curChild.nextSibling;
-            }
-        }
-    }
-
-    /**
      * Gets all ancestor nodes from the provided node to the provided root.
      */
     function getAncestors(node, rootNode){
@@ -442,8 +399,10 @@ RTEExt.rte.Utils = (function(CUI){
      * Determines if the provided node is a styling container node, meaning it serves as a container node but
      * may also be wrapped within existing styling tags (e.g. an <a/> tag wrapped in an <i/> tag or <i><a/></i>.
      */
-    function isStylingContainerNode(node){
-        return node.tagName && stylingContainerTags.includes(node.tagName.toLowerCase());
+    function isStylingContainerNode(node, stylingTagName){
+        return node.tagName
+            && (!stylingTagName || node.tagName.toLowerCase() !== stylingTagName)
+            && stylingContainerTags.includes(node.tagName.toLowerCase());
     }
 
     /**
@@ -457,7 +416,6 @@ RTEExt.rte.Utils = (function(CUI){
         getComputedStyle: getComputedStyle,
         unwrap: unwrap,
         canUnwrap: canUnwrap,
-        stripDescendantStyle: stripDescendantStyle,
         getAncestors: getAncestors,
         getCommonAncestor: getCommonAncestor,
         convertTagName: convertTagName,

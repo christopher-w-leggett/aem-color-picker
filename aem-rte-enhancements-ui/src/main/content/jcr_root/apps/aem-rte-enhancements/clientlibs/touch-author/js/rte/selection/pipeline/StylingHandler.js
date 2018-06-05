@@ -400,9 +400,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
          */
         _isContainer: function(node){
             return RTEExt.rte.Utils.isContainerNode(node)
-                || (node.tagName
-                    && node.tagName.toLowerCase() !== this._stylingTagName
-                    && RTEExt.rte.Utils.isStylingContainerNode(node))
+                || RTEExt.rte.Utils.isStylingContainerNode(node, this._stylingTagName)
                 || RTEExt.rte.Utils.isIgnoredNode(node);
         }
     });

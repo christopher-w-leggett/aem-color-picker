@@ -27,12 +27,15 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         },
 
         execute: function(execDef){
-            var startNode = execDef.selection.startNode,
+            var stylingTagName = 'mark',
+                styles = {'background-color': execDef.value},
+                startNode = execDef.selection.startNode,
                 endNode = execDef.selection.endNode,
                 root = execDef.editContext.root,
                 actingRoot = RTEExt.rte.Utils.getCommonAncestor(startNode, endNode, root, function(node){
                     return node.tagName
-                        && (RTEExt.rte.Utils.isContainerNode(node) || RTEExt.rte.Utils.isStylingContainerNode(node));
+                        && (RTEExt.rte.Utils.isContainerNode(node)
+                            || RTEExt.rte.Utils.isStylingContainerNode(node, stylingTagName));
                 }),
                 generator = new RTEExt.rte.selection.pipeline.HtmlSelectionGenerator(
                     startNode,
@@ -48,7 +51,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                             documentFragment,
                             function(node){
                                 return !RTEExt.rte.Utils.isContainerNode(node)
-                                    && !RTEExt.rte.Utils.isStylingContainerNode(node)
+                                    && !RTEExt.rte.Utils.isStylingContainerNode(node, stylingTagName)
                                     && !RTEExt.rte.Utils.isIgnoredNode(node);
                             },
                             function(node){
@@ -57,7 +60,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                                 //TODO: Verify <br/>, <img/> and other self closing tags won't have an issue here.
                                 if(node.nodeType === 1
                                     && !RTEExt.rte.Utils.isContainerNode(node)
-                                    && !RTEExt.rte.Utils.isStylingContainerNode(node)
+                                    && !RTEExt.rte.Utils.isStylingContainerNode(node, stylingTagName)
                                     && !RTEExt.rte.Utils.isIgnoredNode(node)
                                     && !node.firstChild){
                                     strip = true;
@@ -74,7 +77,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
             //add transformer
             pipeline.addTransformer(new RTEExt.rte.selection.pipeline.StylingHandler(
-                'mark', {'background-color': execDef.value}
+                stylingTagName, styles
             ));
 
             //style

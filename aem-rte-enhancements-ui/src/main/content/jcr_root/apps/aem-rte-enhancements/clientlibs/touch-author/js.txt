@@ -1,10 +1,5 @@
 #base=js
 rte/Utils.js
-rte/MarkupStyler.js
-
-rte/selection/Selection.js
-rte/selection/StylingNodeWriter.js
-rte/selection/SelectionStylingVisitor.js
 
 rte/selection/pipeline/Generator.js
 rte/selection/pipeline/HtmlSelectionGenerator.js
