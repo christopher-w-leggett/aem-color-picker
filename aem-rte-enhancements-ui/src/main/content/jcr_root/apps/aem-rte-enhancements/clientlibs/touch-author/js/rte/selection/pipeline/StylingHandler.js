@@ -18,6 +18,8 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
 
         _styledTree: null,
 
+        _stylingQueue: null,
+
         _activeStylingNode: null,
 
         construct: function(stylingTagName, styles){
@@ -25,6 +27,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             this._styles = styles;
             this._originalTree = [];
             this._styledTree = [];
+            this._stylingQueue = [];
         },
 
         startSelection: function(chain){
@@ -33,16 +36,24 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         beginInnerNode: function(node, chain){
-            var clonedNode = RTEExt.rte.Utils.cloneNode(node);
+            var clonedNode = RTEExt.rte.Utils.cloneNode(node),
+                containerTree = this._getContainerTree(),
+                currentStyling = this._getAggregateStyling(clonedNode, containerTree);
 
             if(this._isContainer(node)){
-                this._closeStylingNode(chain);
+                this._closeContainer(chain);
+                this._closeStylingNode();
+                this._rebuildContainerTree(containerTree, true, chain);
             } else if(!this._activeStylingNode) {
-                this._openStylingNode(clonedNode, chain);
+                this._closeContainer(chain);
+                this._openStylingNode(clonedNode, currentStyling, chain);
+                this._rebuildContainerTree(containerTree, false, chain);
             } else if(this._isStylingNode(clonedNode)){
                 //we encountered a styling node within our open styling node, so flatten the structure
-                this._closeStylingNode(chain);
-                this._openStylingNode(clonedNode, chain);
+                this._closeContainer(chain);
+                this._closeStylingNode();
+                this._openStylingNode(clonedNode, currentStyling, chain);
+                this._rebuildContainerTree(containerTree, false, chain);
             }
 
             //track original and cloned node (if it wasn't added as the active styling node)
@@ -50,33 +61,47 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             if(!this._isStylingNode(clonedNode)){
                 this._stripStyles(clonedNode);
                 this._styledTree.push(clonedNode);
-                chain.next().beginInnerNode(clonedNode, chain);
+                this._addToQueue(clonedNode, true, chain.next().beginInnerNode.bind(chain.next(), clonedNode, chain));
             }
         },
 
         endInnerNode: function(node, chain){
+            var clonedNode,
+                containerTree = this._getContainerTree();
+
             //close styling node if node is container node or styling container node.
             //also close if we are leaving a styling node from the original tree because we have flattened this.
+            //TODO: verify nested styling tags doesn't have issue.
             if(this._isContainer(node) || this._isStylingNode(this._originalTree[this._originalTree.length - 1])){
-                this._closeStylingNode(chain);
+                this._closeContainer(chain);
+                this._closeStylingNode();
+                this._rebuildContainerTree(containerTree, true, chain);
             } else if(this._styledTree[this._styledTree.length - 1] === this._activeStylingNode){
                 //we are moving out of active styled node, so clear it
-                this._activeStylingNode = null;
+                this._closeStylingNode();
             }
 
             //update original tree
             this._originalTree.pop();
 
             //move to next handler, send last node from styled tree
-            chain.next().endInnerNode(this._styledTree.pop(), chain);
+            clonedNode = this._styledTree.pop();
+            this._addToQueue(clonedNode, false, chain.next().endInnerNode.bind(chain.next(), clonedNode, chain));
+
+            if(this._isContentNode(clonedNode)){
+                this._flushQueue();
+            }
         },
 
         beginOuterNode: function(node, chain){
-            var clonedNode = RTEExt.rte.Utils.cloneNode(node);
+            var clonedNode = RTEExt.rte.Utils.cloneNode(node),
+                containerTree = this._getContainerTree();
 
             //close open styling node
             if(this._activeStylingNode){
+                this._closeContainer(chain);
                 this._closeStylingNode(chain);
+                this._rebuildContainerTree(containerTree, true, chain);
             }
 
             //track original and cloned node
@@ -84,84 +109,161 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             this._styledTree.push(clonedNode);
 
             //move to next handler
-            chain.next().beginOuterNode(clonedNode, chain);
+            this._addToQueue(clonedNode, true, chain.next().beginOuterNode.bind(chain.next(), clonedNode, chain));
         },
 
         endOuterNode: function(node, chain){
+            var clonedNode,
+                containerTree = this._getContainerTree();
+
             //close open styling node
             if(this._activeStylingNode){
+                this._closeContainer(chain);
                 this._closeStylingNode(chain);
+                this._rebuildContainerTree(containerTree, true, chain);
             }
 
             //update original
             this._originalTree.pop();
 
             //move to next handler, send last node from styled tree
-            chain.next().endOuterNode(this._styledTree.pop(), chain);
+            clonedNode = this._styledTree.pop();
+            this._addToQueue(clonedNode, false, chain.next().endOuterNode.bind(chain.next(), clonedNode, chain));
+
+            //flush queue if ending content node
+            if(this._isContentNode(clonedNode)){
+                this._flushQueue();
+            }
         },
 
         endSelection: function(chain){
+            var containerTree = this._getContainerTree();
+
             //close open styling node
             if(this._activeStylingNode){
+                this._closeContainer(chain);
                 this._closeStylingNode(chain);
+                this._rebuildContainerTree(containerTree, true, chain);
             }
+
+            //flush queue
+            this._flushQueue();
 
             //move to next handler
             chain.next().endSelection(chain);
         },
 
-        /**
-         * Opens a new styling node and rebuilds active tree as necessary.
-         */
-        _openStylingNode: function(node, chain){
-            var containerTree = this._getContainerTree(),
-                currentStyling = this._getAggregateStyling(node, containerTree),
-                tempNode;
+        _addToQueue: function(node, begin, callback){
+            this._stylingQueue.push({
+                node: node,
+                mode: begin ? 'begin' : 'end',
+                callback: callback
+            });
+        },
+
+        _flushQueue: function(){
+            var tempQueueEntry,
+                localQueue = [],
+                beginIndex;
+
+            while(this._stylingQueue.length){
+                //get next entry and add to local queue
+                tempQueueEntry = this._stylingQueue.shift();
+                localQueue.push(tempQueueEntry);
+
+                //if we encounter content, flush queue up to this point as we know we want to keep these records
+                if(this._isContentNode(tempQueueEntry.node)){
+                    //write queue up to this point
+                    while(localQueue.length){
+                        localQueue.shift().callback();
+                    }
+                } else if(tempQueueEntry.mode === 'end'){
+                    //and entry is being closed, make sure it wasn't opened without containing content
+                    beginIndex = localQueue.findIndex(function(entry){
+                        return entry.node === tempQueueEntry.node && entry.mode === 'begin';
+                    });
+
+                    //if we are closing an empty node, just ignore it
+                    if(beginIndex > -1){
+                        localQueue.splice(beginIndex);
+                    } else {
+                        //we can write up to this point as this is valid
+                        while(localQueue.length){
+                            localQueue.shift().callback();
+                        }
+                    }
+                }
+            }
+
+            //put any remaining entries back in the queue for later flushing
+            while(localQueue.length){
+                this._stylingQueue.push(localQueue.shift());
+            }
+        },
+
+        _isContentNode: function(node){
+            var isContent = node.nodeType === 3;
+
+            if(!isContent && node.nodeType === 1){
+                //TODO: verify and flush this out.
+                isContent = node.tagName.toLowerCase() === 'br'
+                    || node.tagName.toLowerCase() === 'img';
+            }
+
+            return isContent;
+        },
+
+        _closeContainer: function(chain){
+            var tempNode;
 
             //move styled tree up to first container node or styling container node.
             while(this._styledTree.length && !this._isContainer(this._styledTree[this._styledTree.length - 1])){
-                chain.next().endInnerNode(this._styledTree.pop(), chain);
+                tempNode = this._styledTree.pop();
+                this._addToQueue(tempNode, false, chain.next().endInnerNode.bind(chain.next(), tempNode, chain));
             }
+        },
 
-            //create styling node
-            this._activeStylingNode = document.createElement(this._stylingTagName);
-            this._applyStyles(this._activeStylingNode, currentStyling);
-            this._applyStyles(this._activeStylingNode);
-            this._styledTree.push(this._activeStylingNode);
-            chain.next().beginInnerNode(this._activeStylingNode, chain);
+        _rebuildContainerTree: function(tree, includeStyling, chain){
+            var containerTree = tree.slice(),
+                tempNode;
 
             //now recreate container tree, stripping styles and avoiding nested styling tags.
             while(containerTree.length){
                 tempNode = containerTree.shift();
-                if(!this._isStylingNode(tempNode)){
-                    this._stripStyles(tempNode);
+                if(includeStyling || !this._isStylingNode(tempNode)){
+                    if(!includeStyling){
+                        this._stripStyles(tempNode);
+                    }
                     this._styledTree.push(tempNode);
-                    chain.next().beginInnerNode(tempNode, chain);
+                    this._addToQueue(tempNode, true, chain.next().beginInnerNode.bind(chain.next(), tempNode, chain));
                 }
             }
+        },
+
+        /**
+         * Opens a new styling node and rebuilds active tree as necessary.
+         */
+        _openStylingNode: function(node, additionalStyles, chain){
+            //create styling node
+            this._activeStylingNode = document.createElement(this._stylingTagName);
+            if(additionalStyles){
+                this._applyStyles(this._activeStylingNode, additionalStyles);
+            }
+            this._applyStyles(this._activeStylingNode);
+            this._styledTree.push(this._activeStylingNode);
+            this._addToQueue(
+                this._activeStylingNode,
+                true,
+                chain.next().beginInnerNode.bind(chain.next(), this._activeStylingNode, chain)
+            );
         },
 
         /**
          * Closes any open styling node and rebuilds active tree as necessary.
          */
         _closeStylingNode: function(chain){
-            var containerTree = this._getContainerTree(),
-                tempNode;
-
-            //move styled tree up to first container node or styling container node.
-            while(this._styledTree.length && !this._isContainer(this._styledTree[this._styledTree.length - 1])){
-                chain.next().endInnerNode(this._styledTree.pop(), chain);
-            }
-
             //clear active styling node
             this._activeStylingNode = null;
-
-            //now recreate container tree
-            while(containerTree.length){
-                tempNode = containerTree.shift();
-                this._styledTree.push(tempNode);
-                chain.next().beginInnerNode(tempNode, chain);
-            }
         },
 
         /**

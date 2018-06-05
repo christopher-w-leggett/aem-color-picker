@@ -41,7 +41,35 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                     execDef.selection.endOffset,
                     actingRoot
                 ),
-                serializer = new RTEExt.rte.selection.pipeline.HtmlSelectionSerializer(actingRoot),
+                serializer = new RTEExt.rte.selection.pipeline.HtmlSelectionSerializer(
+                    actingRoot,
+                    function(documentFragment){
+                        RTEExt.rte.Utils.normalize(
+                            documentFragment,
+                            function(node){
+                                return !RTEExt.rte.Utils.isContainerNode(node)
+                                    && !RTEExt.rte.Utils.isStylingContainerNode(node)
+                                    && !RTEExt.rte.Utils.isIgnoredNode(node);
+                            },
+                            function(node){
+                                var strip = false;
+
+                                //TODO: Verify <br/>, <img/> and other self closing tags won't have an issue here.
+                                if(node.nodeType === 1
+                                    && !RTEExt.rte.Utils.isContainerNode(node)
+                                    && !RTEExt.rte.Utils.isStylingContainerNode(node)
+                                    && !RTEExt.rte.Utils.isIgnoredNode(node)
+                                    && !node.firstChild){
+                                    strip = true;
+                                } else if(node.nodeType === 3 && node.textContent.length === 0) {
+                                    strip = true;
+                                }
+
+                                return strip;
+                            }
+                        );
+                    }
+                ),
                 pipeline = new RTEExt.rte.selection.pipeline.Pipeline(generator, serializer);
 
             //add transformer

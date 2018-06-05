@@ -379,8 +379,7 @@ RTEExt.rte.Utils = (function(CUI){
     }
 
     /**
-     * Normalizes tree structure by combining similar sibling elements, combining sibling text nodes, stripping
-     * empty elements and stripping empty text nodes.
+     * Normalizes tree structure by combining similar siblings and stripping empty nodes.
      *
      * If a mergeable function is provided it will be used to determine if two elements may be merged.  If not provided,
      * sibling elements will not be merged.

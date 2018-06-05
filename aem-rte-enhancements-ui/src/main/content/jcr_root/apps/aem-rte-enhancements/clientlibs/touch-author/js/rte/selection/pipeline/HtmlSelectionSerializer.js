@@ -12,12 +12,15 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
 
         _root: null,
 
+        _normalize: null,
+
         _documentFragment: null,
 
         _writePointer: null,
 
-        construct: function(root){
+        construct: function(root, normalize){
             this._root = root;
+            this._normalize = normalize;
         },
 
         startSelection: function(chain){
@@ -42,6 +45,11 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         endSelection: function(chain){
+            //normalize nodes
+            if(this._normalize){
+                this._normalize(this._documentFragment);
+            }
+
             //remove all children of root
             while(this._root.firstChild){
                 this._root.removeChild(this._root.firstChild);
