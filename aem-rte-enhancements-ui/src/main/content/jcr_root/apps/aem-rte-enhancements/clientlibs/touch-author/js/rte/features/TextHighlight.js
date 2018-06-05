@@ -95,21 +95,8 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         updateState: function(selDef){
-            var cursorAncestors = [],
-                dominantMark = null,
-                i;
-
-            if(RTEExt.rte.Utils.isFullSelection(selDef.selection, selDef.editContext.root)){
-                dominantMark = RTEExt.rte.Utils.getSharedDominantParent(
-                    selDef.selection.startNode, selDef.selection.endNode, selDef.editContext.root, 'mark'
-                );
-            } else if(selDef.selection.startNode && !selDef.selection.endNode){
-                dominantMark = RTEExt.rte.Utils.findAncestorTag(
-                    selDef.selection.startNode, 'mark', selDef.editContext.root
-                );
-            }
-
-            this.ui.setSelected(dominantMark !== null);
+            //no need to update ui state because we use a color picker dialog where any applied color is removed by
+            //applying no color vs. deselecting a button.
         },
 
         isHeadless: function(command, value){

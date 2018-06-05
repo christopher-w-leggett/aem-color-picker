@@ -95,12 +95,8 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         updateState: function(selDef){
-            var selectedColor = RTEExt.rte.Utils.getSelectionStyle(
-                selDef.selection, {style: 'color'}, selDef.editContext.root
-            );
-            this.ui.setSelected('' !== selectedColor && RTEExt.rte.Utils.isFullSelection(
-                selDef.selection, selDef.editContext.root
-            ));
+            //no need to update ui state because we use a color picker dialog where any applied color is removed by
+            //applying no color vs. deselecting a button.
         },
 
         isHeadless: function(command, value){

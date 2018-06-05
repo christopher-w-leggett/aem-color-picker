@@ -3,199 +3,47 @@ RTEExt.rte = RTEExt.rte || {};
 RTEExt.rte.Utils = (function(CUI){
     "use strict";
 
-    /**
-     * Gets the dominant parent nodes to the left of the provided node.  A left most dominant parent is one that
-     * considers the provided node as the first child conceptually.
-     */
-    function getLeftDominantParents(node, rootNode){
-        var dominantParents = [],
-            curChild = node,
-            curParent = curChild.parentNode;
+    var containerTags = [
+            'p',
+            'div',
+            'h1',
+            'h2',
+            'h3',
+            'h4',
+            'h5',
+            'h6',
+            'blockquote',
+            'pre',
+            'li',
+            'caption',
+            'address',
+            'th',
+            'td'
+        ],
 
-        //keep checking parents if we are first child and parent isn't root node.
-        while(!curChild.previousSibling && curChild !== rootNode && curParent !== rootNode){
-            //track dominant parent
-            dominantParents.push(curParent);
+        stylingContainerTags = [
+            'a',
+            'mark'
+        ],
 
-            //set next parent/child
-            curChild = curParent;
-            curParent = curParent.parentNode;
-        }
+        ignoredTags = [
+            'ul',
+            'ol',
+            'table',
+            'tbody',
+            'thead',
+            'tfoot',
+            'tr'
+        ],
 
-        return dominantParents;
-    }
-
-    /**
-     * Gets the dominant parent nodes to the right of the provided node.  A right most dominant parent is one that
-     * considers the provided node as the last child conceptually.
-     */
-    function getRightDominantParents(node, rootNode){
-        var dominantParents = [],
-            curChild = node,
-            curParent = curChild.parentNode;
-
-        //keep checking parents if we are first child and parent isn't root node.
-        while(!curChild.nextSibling && curChild !== rootNode && curParent !== rootNode){
-            //track dominant parent
-            dominantParents.push(curParent);
-
-            //set next parent/child
-            curChild = curParent;
-            curParent = curParent.parentNode;
-        }
-
-        return dominantParents;
-    }
-
-    /**
-     * Gets the dominant parent that is shared between the startNode and endNode.  The dominant parent will
-     * consider the startNode as the first child and the endNode as the last child conceptually.
-     */
-    function getSharedDominantParent(startNode, endNode, rootNode, sharedTagName){
-        var leftDominantParents = getLeftDominantParents(startNode, rootNode),
-            rightDominantParents = getRightDominantParents(endNode, rootNode),
-            sharedTagName = sharedTagName || '*',
-            sharedDominantParent = null,
-            leftIndex = leftDominantParents.length - 1,
-            rightIndex = rightDominantParents.length - 1;
-
-        while(sharedDominantParent === null && leftIndex > -1){
-            if(leftDominantParents[leftIndex] === rightDominantParents[rightIndex]
-                && (sharedTagName === '*' || leftDominantParents[leftIndex].tagName.toLowerCase() === sharedTagName)){
-                sharedDominantParent = leftDominantParents[leftIndex];
-            }
-
-            //move to next set of checks
-            if(rightIndex > 0){
-                rightIndex--;
-            } else {
-                leftIndex--;
-                rightIndex = rightDominantParents.length - 1;
-            }
-        }
-
-        return sharedDominantParent;
-    }
-
-    /**
-     * Gets the parent that is shared between the startNode and endNode.  The parent chosen is the one closest to both
-     * the start/end nodes and considers the startNode as the first child and the endNode as the last child
-     * conceptually.
-     */
-    function getSharedParent(startNode, endNode, rootNode){
-        var leftDominantParents = getLeftDominantParents(startNode, rootNode),
-            rightDominantParents = getRightDominantParents(endNode, rootNode),
-            sharedParent = null,
-            leftIndex = 0,
-            rightIndex = 0;
-
-        while(sharedParent === null && leftIndex < leftDominantParents.length){
-            if(leftDominantParents[leftIndex] === rightDominantParents[rightIndex]){
-                sharedParent = leftDominantParents[leftIndex];
-            }
-
-            //move to next set of checks
-            if(rightIndex < rightDominantParents.length - 1){
-                rightIndex++;
-            } else {
-                leftIndex++;
-                rightIndex = 0;
-            }
-        }
-
-        return sharedParent;
-    }
-
-    /**
-     * Gets the closest defined style starting from the provided node and working up the parent tree.
-     */
-    function getClosestStyle(node, criteria, rootNode){
-        var style = '',
-            curNode = node,
-            searchTag = criteria.tagName || '*';
-
-        while('' === style && curNode !== rootNode){
-            style = curNode.style && (curNode.tagName.toLowerCase() === searchTag || searchTag === '*')
-                ? curNode.style[criteria.style]
-                : '';
-            curNode = curNode.parentNode;
-        }
-
-        return style;
-    }
-
-    /**
-     * Gets the closest node with a defined style starting from the provided node and working up the parent tree.
-     */
-    function getClosestStyledNode(node, criteria, rootNode){
-        var styledNode = null,
-            curNode = node,
-            searchTag = criteria.tagName || '*';
-
-        while(null === styledNode && curNode !== rootNode){
-            styledNode = curNode.style && curNode.style[criteria.style] !== ''
-                && (curNode.tagName.toLowerCase() === searchTag || searchTag === '*') ? curNode : null;
-            curNode = curNode.parentNode;
-        }
-
-        return styledNode;
-    }
-
-    /**
-     * Determines if the provided selection consists of a range or a single cursor position.
-     */
-    function isRangeSelection(selectionDef){
-        return selectionDef.startNode && selectionDef.endNode;
-    }
-
-    /**
-     * Determines if the provided selection consists of the entire contents of a common parent element.  This
-     * means that the start node and end node share a common parent, the start node is at the beginning of that
-     * common parent and the end node is at the end of that common parent.  The start/end nodes do not need to
-     * be the first/last child of the common parent and can be the first/last child conceptually.
-     */
-    function isFullSelection(selectionDef, rootNode){
-        var fullSelection = false,
-            sharedDominantParent,
-            leftFullSelection,
-            rightFullSelection;
-
-        if(selectionDef.startNode && selectionDef.endNode){
-            sharedDominantParent = getSharedDominantParent(
-                selectionDef.startNode, selectionDef.endNode, rootNode
-            );
-            leftFullSelection = selectionDef.startNode.nodeType !== 3 || selectionDef.startOffset === 0;
-            rightFullSelection = selectionDef.endNode.nodeType !== 3 || selectionDef.endOffset === selectionDef.endNode.length;
-
-            fullSelection = sharedDominantParent !== null && leftFullSelection && rightFullSelection;
-        }
-
-        return fullSelection;
-    }
-
-    /**
-     * Gets the requested style of the current selection.
-     * If the selection isn't a range, it will find the style of the closest styled parent node.
-     * If the selection is a range, it will find the style of the closest parent at the start of the range and
-     * at the end of the range.  If the start and end styles match, that style will be returned.
-     */
-    function getSelectionStyle(selectionDef, criteria, rootNode){
-        var color = '',
-            startColor,
-            endColor;
-
-        if(!isRangeSelection(selectionDef)){
-            color = getClosestStyle(selectionDef.startNode, criteria, rootNode);
-        } else {
-            startColor = selectionDef.startNode ? getClosestStyle(selectionDef.startNode, criteria, rootNode) : '';
-            endColor = selectionDef.endNode ? getClosestStyle(selectionDef.endNode, criteria, rootNode) : '';
-            if(startColor === endColor){
-                color = startColor;
-            }
-        }
-
-        return color;
-    }
+        contentTags = [
+            'br',
+            'embed',
+            'hr',
+            'img',
+            'input',
+            'wbr'
+        ];
 
     /**
      * Gets the computed style of the current selection.  If a tagName is provided in the criteria, the closest parent
@@ -259,8 +107,8 @@ RTEExt.rte.Utils = (function(CUI){
     /**
      * Determines if provided node is a specific tag.
      */
-    function isTag(node, tagNameRegex){
-        return node.tagName && tagNameRegex.test(node.tagName);
+    function isTag(node, tagName){
+        return node.tagName && node.tagName.toLowerCase() === tagName;
     }
 
     /**
@@ -283,71 +131,13 @@ RTEExt.rte.Utils = (function(CUI){
     /**
      * Determines if the node can be unwrapped.  This is true if the node is a coloring node.
      */
-    function canUnwrap(node, tagNameRegex){
-        return isTag(node, tagNameRegex) && (hasNoAttributes(node) || hasOnlyEmptyStyleAttribute(node));
+    function canUnwrap(node, tagName){
+        return isTag(node, tagName) && (hasNoAttributes(node) || hasOnlyEmptyStyleAttribute(node));
     }
 
     /**
-     * Strips styles from descendant nodes.  Any tag matching the unwrap tagName without any styles will be unwrapped.
-     *
-     * criteria = {
-     *     'strip': {
-     *         'tagName': <regex>,
-     *         'styles': {
-     *             '<style-name>': <regex>,
-     *             ...
-     *         }
-     *     },
-     *     'unwrap': {
-     *         'tagName': <regex>,
-     *     }
-     * }
+     * Gets all ancestor nodes from the provided node to the provided root.
      */
-    function stripDescendantStyle(node, criteria){
-        var curChild = node.firstChild,
-            curStyle,
-            markerNode;
-
-        while(curChild){
-            if(curChild.style && curChild.tagName && criteria.strip.tagName.test(curChild.tagName)){
-                for(curStyle in criteria.strip.styles){
-                    if(criteria.strip.styles.hasOwnProperty(curStyle)){
-                        if(criteria.strip.styles[curStyle].test(curChild.style[curStyle])){
-                            curChild.style[curStyle] = '';
-                        }
-                    }
-                }
-            }
-
-            if(criteria.unwrap.tagName && canUnwrap(curChild, criteria.unwrap.tagName)){
-                markerNode = curChild.previousSibling || node;
-                unwrap(curChild);
-                curChild = markerNode === node ? markerNode.firstChild : markerNode.nextSibling;
-            }else{
-                stripDescendantStyle(curChild, criteria);
-                curChild = curChild.nextSibling;
-            }
-        }
-    }
-
-    function getNextRangeSibling(node, endTree){
-        var curNode = node,
-            nextSibling = curNode.nextSibling;
-
-        //move to next conceptual sibling which could be our parents sibling.
-        while(!nextSibling && !endTree.includes(curNode)){
-            curNode = curNode.parentNode;
-            nextSibling = curNode.nextSibling;
-        }
-
-        //if next sibling represents the end tree, move down
-        while(endTree.includes(nextSibling)){
-            nextSibling = nextSibling.firstChild;
-        }
-
-        return nextSibling;
-    }
-
     function getAncestors(node, rootNode){
         var ancestors = [],
             curNode;
@@ -365,50 +155,39 @@ RTEExt.rte.Utils = (function(CUI){
         return ancestors;
     }
 
-    function findAncestorTag(node, tagName, rootNode){
-        var ancestor = null,
-            ancestors = RTEExt.rte.Utils.getAncestors(node, rootNode),
-            i = ancestors.length - 1;
+    /**
+     * Gets the common ancestor shared between 2 nodes up to the provided root node.  If a validAncestor function is
+     * provided, it will be used to consider which ancestors may be compared otherwise all ancestors will be compared.
+     */
+    function getCommonAncestor(node1, node2, root, validAncestor){
+        var node1Ancestors = getAncestors(node1, root),
+            node2Ancestors = getAncestors(node2, root),
+            commonAncestor = null,
+            node1Index = 0,
+            node2Index = 0;
 
-        while(ancestor === null && i >= 0){
-            if(ancestors[i].tagName && ancestors[i].tagName.toLowerCase() === tagName){
-                ancestor = ancestors[i];
+        while(commonAncestor === null && node1Index < node1Ancestors.length){
+            if((!validAncestor || validAncestor(node1Ancestors[node1Index]))
+                && node1Ancestors[node1Index] === node2Ancestors[node2Index]){
+                commonAncestor = node1Ancestors[node1Index];
             }
 
-            i--;
-        }
-
-        return ancestor;
-    }
-
-    function getCommonAncestor(selectionDef, rootNode){
-        var startNodeAncestors = getAncestors(selectionDef.startNode, rootNode),
-            endNodeAncestors = getAncestors(selectionDef.endNode, rootNode),
-            commonAncestor = null,
-            startIndex = 0,
-            endIndex = 0;
-
-        if(!selectionDef.endNode && startNodeAncestors.length){
-            commonAncestor = startNodeAncestors[0];
-        } else {
-            while(commonAncestor === null && startIndex < startNodeAncestors.length){
-                if(startNodeAncestors[startIndex] === endNodeAncestors[endIndex]){
-                    commonAncestor = startNodeAncestors[startIndex];
-                }
-
-                //move to next set of checks
-                if(endIndex < endNodeAncestors.length - 1){
-                    endIndex++;
-                } else {
-                    startIndex++;
-                    endIndex = 0;
-                }
+            //move to next set of checks
+            if(node2Index < node2Ancestors.length - 1){
+                node2Index++;
+            } else {
+                node1Index++;
+                node2Index = 0;
             }
         }
 
         return commonAncestor;
     }
 
+    /**
+     * Converts the provided node tag to the target tagName.  This is done by creating a new element with the target
+     * tagName, copying all attributes and children from the original and replacing the original.
+     */
     function convertTagName(node, tagName){
         var newNode,
             i;
@@ -431,23 +210,232 @@ RTEExt.rte.Utils = (function(CUI){
         }
     }
 
+    /**
+     * Clones the provided node by creating a new node of the same type and copying attributes and/or text.
+     */
+    function cloneNode(node){
+        var newNode = null,
+            i;
+
+        if(node.nodeType === 1){
+            newNode = document.createElement(node.tagName);
+            for(i = 0; i < node.attributes.length; i++){
+                newNode.setAttribute(node.attributes[i].name, node.attributes[i].value);
+            }
+        } else if(node.nodeType === 3){
+            newNode = document.createTextNode(node.textContent);
+        }
+
+        return newNode;
+    }
+
+    /**
+     * Splits a text node into 3 possible parts depending on the startOffset and endOffset provided.
+     */
+    function splitTextNode(textNode, startOffset, endOffset){
+        var splitNodes = {
+            beginning: null,
+            middle: null,
+            end: null
+        },
+        normalizedStartOffset,
+        normalizedEndOffset;
+
+        if(textNode && textNode.nodeType === 3){
+            //verify startOffset
+            if(startOffset > textNode.textContent.length){
+                //max startOffset can be text length
+                normalizedStartOffset = textNode.textContent.length;
+            } else if(startOffset > 0){
+                //startOffset is valid value from 1 up to text length
+                normalizedStartOffset = startOffset;
+            } else {
+                //startOffset is either invalid, non existent or 0. set to 0 so beginning split isn't performed.
+                normalizedStartOffset = 0;
+            }
+
+            //verify endOffset
+            if((endOffset < 0 || endOffset === 0 || endOffset > 0) && endOffset < normalizedStartOffset){
+                //min endOffset is that of the normalizedStartOffset.  In this scenario, no middle text node will be
+                //returned.
+                normalizedEndOffset = normalizedStartOffset;
+            } else if((endOffset === 0 || endOffset > 0) && endOffset <= textNode.textContent.length){
+                //endOffset is valid value from normalizedStartOffset up to text length
+                normalizedEndOffset = endOffset;
+            } else {
+                //endOffset is either invalid, non existent or greater than text length.
+                //set to text length so end split isn't performed.
+                normalizedEndOffset = textNode.textContent.length;
+            }
+
+            if(normalizedStartOffset > 0){
+                //we need to do a beginning split up to start offset.
+                splitNodes.beginning = document.createTextNode(
+                    textNode.textContent.substring(0, normalizedStartOffset)
+                );
+            }
+            if(normalizedEndOffset > normalizedStartOffset){
+                //we need to do a middle split from start offset to end offset
+                splitNodes.middle = document.createTextNode(
+                    textNode.textContent.substring(normalizedStartOffset, normalizedEndOffset)
+                );
+            }
+            if(normalizedEndOffset < textNode.textContent.length){
+                //we need to  do an end split from end offset to remaining text
+                splitNodes.end = document.createTextNode(
+                    textNode.textContent.substring(normalizedEndOffset, textNode.textContent.length)
+                );
+            }
+        }
+
+        return splitNodes;
+    }
+
+    /**
+     * Determines if two elements are similar.
+     */
+    function similarElements(element1, element2){
+        var equal = false,
+            element2Attributes = {},
+            element2ClassNames = {},
+            i;
+
+        //only compare elements.
+        if(element1.nodeType === 1 && element2.nodeType === 1){
+            //compare tag name
+            equal = element1.tagName === element2.tagName;
+
+            //compare attribute length
+            equal = equal && element1.attributes.length === element2.attributes.length;
+
+            //compare style length
+            equal = equal && element1.style.length === element2.style.length;
+
+            //compare class length
+            equal = equal && element1.classList.length === element2.classList.length;
+
+            //compare specific attributes
+            if(equal){
+                for(i = 0; i < element2.attributes.length; i++){
+                    element2Attributes[element2.attributes[i].name] = element2.attributes[i].value;
+                }
+                for(i = 0; i < element1.attributes.length && equal; i++){
+                    equal = element2Attributes.hasOwnProperty(element1.attributes[i].name)
+                        && element1.attributes[i].value === element2Attributes[element1.attributes[i].name];
+                }
+            }
+
+            //compare specific styles
+            for(i = 0; i < element1.style.length && equal; i++){
+                equal = element1.style[element1.style[i]] === element2.style[element1.style[i]];
+            }
+
+            //compare specific classes
+            if(equal){
+                for(i = 0; i < element2.classList.length; i++){
+                    element2ClassNames[element2.classList[i]] = true;
+                }
+                for(i = 0; i < element1.classList.length && equal; i++){
+                    equal = element2ClassNames.hasOwnProperty(element1.classList[i]);
+                }
+            }
+        }
+
+        return equal;
+    }
+
+    /**
+     * Normalizes tree structure by combining similar siblings.
+     *
+     * If a mergeable function is provided it will be used to determine if two elements may be merged.  If not provided,
+     * sibling elements will not be merged.
+     */
+    function normalize(node, mergeable){
+        var curNode = node.firstChild,
+            nextNode,
+            tempNode;
+
+        //normalize non container nodes.
+        while(curNode){
+            //merge next sibling until we can't
+            while(curNode.nextSibling
+                && mergeable
+                && mergeable(curNode)
+                && mergeable(curNode.nextSibling)
+                && similarElements(curNode, curNode.nextSibling)){
+                //merge siblings.
+                while(curNode.nextSibling.firstChild){
+                    curNode.appendChild(curNode.nextSibling.firstChild);
+                }
+                curNode.parentNode.removeChild(curNode.nextSibling);
+            }
+
+            //move to next node, first try to move down and then across.  don't go beyond root node
+            nextNode = curNode.firstChild;
+            while(!nextNode && curNode !== node){
+                //move across
+                nextNode = curNode.nextSibling;
+
+                //set current node to parent.
+                curNode = curNode.parentNode;
+            }
+            curNode = nextNode;
+        }
+
+        //finally normalize text nodes
+        node.normalize();
+    }
+
+    /**
+     * Determines if the provided node is a container node, meaning styling nodes must be placed within it.
+     */
+    function isContainerNode(node){
+        return node.tagName && containerTags.includes(node.tagName.toLowerCase());
+    }
+
+    /**
+     * Determines if the provided node is a styling container node, meaning it serves as a container node but
+     * may also be wrapped within existing styling tags (e.g. an <a/> tag wrapped in an <i/> tag or <i><a/></i>.
+     */
+    function isStylingContainerNode(node, stylingTagName){
+        return node.tagName
+            && (!stylingTagName || node.tagName.toLowerCase() !== stylingTagName)
+            && stylingContainerTags.includes(node.tagName.toLowerCase());
+    }
+
+    /**
+     * Determines if the provided node is an ignored node, meaning no special processing is performed on it.
+     */
+    function isIgnoredNode(node){
+        return node.tagName && ignoredTags.includes(node.tagName.toLowerCase());
+    }
+
+    /**
+     * Determines if a node is considered content.
+     */
+    function isContentNode(node){
+        var isContent = node.nodeType === 3;
+
+        //check "content tags".
+        isContent = isContent || (node.tagName
+            && contentTags.includes(node.tagName.toLowerCase()));
+
+        return isContent;
+    }
+
     return {
-        getLeftDominantParents: getLeftDominantParents,
-        getRightDominantParents: getRightDominantParents,
-        isRangeSelection: isRangeSelection,
-        isFullSelection: isFullSelection,
-        getSelectionStyle: getSelectionStyle,
         getComputedStyle: getComputedStyle,
-        getClosestStyledNode: getClosestStyledNode,
-        getSharedDominantParent: getSharedDominantParent,
-        getSharedParent: getSharedParent,
-        stripDescendantStyle: stripDescendantStyle,
-        getNextRangeSibling: getNextRangeSibling,
-        getAncestors: getAncestors,
-        findAncestorTag: findAncestorTag,
-        getCommonAncestor: getCommonAncestor,
-        canUnwrap: canUnwrap,
         unwrap: unwrap,
-        convertTagName: convertTagName
+        canUnwrap: canUnwrap,
+        getAncestors: getAncestors,
+        getCommonAncestor: getCommonAncestor,
+        convertTagName: convertTagName,
+        cloneNode: cloneNode,
+        splitTextNode: splitTextNode,
+        normalize: normalize,
+        isContainerNode: isContainerNode,
+        isStylingContainerNode: isStylingContainerNode,
+        isIgnoredNode: isIgnoredNode,
+        isContentNode: isContentNode
     };
 })(window.CUI);

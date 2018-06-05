@@ -1,6 +1,15 @@
 #base=js
 rte/Utils.js
 
+rte/selection/pipeline/Generator.js
+rte/selection/pipeline/HtmlSelectionGenerator.js
+rte/selection/pipeline/Handler.js
+rte/selection/pipeline/StylingHandler.js
+rte/selection/pipeline/HtmlSelectionSerializer.js
+rte/selection/pipeline/PipelineChain.js
+rte/selection/pipeline/PipelineChainFactory.js
+rte/selection/pipeline/Pipeline.js
+
 rte/ui/dialogs/TextColor.js
 rte/ui/dialogs/TextHighlight.js
 
