@@ -167,29 +167,34 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 beginIndex;
 
             while(this._stylingQueue.length){
-                //get next entry and add to local queue
+                //get next entry
                 tempQueueEntry = this._stylingQueue.shift();
-                localQueue.push(tempQueueEntry);
 
-                //if we encounter content, flush queue up to this point as we know we want to keep these records
-                if(this._isContentNode(tempQueueEntry.node)){
-                    //write queue up to this point
-                    while(localQueue.length){
-                        localQueue.shift().callback();
-                    }
-                } else if(tempQueueEntry.mode === 'end'){
-                    //and entry is being closed, make sure it wasn't opened without containing content
-                    beginIndex = localQueue.findIndex(function(entry){
-                        return entry.node === tempQueueEntry.node && entry.mode === 'begin';
-                    });
+                //don't process empty styling nodes.
+                if(!RTEExt.rte.Utils.canUnwrap(tempQueueEntry.node, this._stylingTagName)){
+                    //add to local queue
+                    localQueue.push(tempQueueEntry);
 
-                    //if we are closing an empty node, just ignore it
-                    if(beginIndex > -1){
-                        localQueue.splice(beginIndex);
-                    } else {
-                        //we can write up to this point as this is valid
+                    //if we encounter content, flush queue up to this point as we know we want to keep these records
+                    if(this._isContentNode(tempQueueEntry.node)){
+                        //write queue up to this point
                         while(localQueue.length){
                             localQueue.shift().callback();
+                        }
+                    } else if(tempQueueEntry.mode === 'end'){
+                        //and entry is being closed, make sure it wasn't opened without containing content
+                        beginIndex = localQueue.findIndex(function(entry){
+                            return entry.node === tempQueueEntry.node && entry.mode === 'begin';
+                        });
+
+                        //if we are closing an empty node, just ignore it
+                        if(beginIndex > -1){
+                            localQueue.splice(beginIndex);
+                        } else {
+                            //we can write up to this point as this is valid
+                            while(localQueue.length){
+                                localQueue.shift().callback();
+                            }
                         }
                     }
                 }
