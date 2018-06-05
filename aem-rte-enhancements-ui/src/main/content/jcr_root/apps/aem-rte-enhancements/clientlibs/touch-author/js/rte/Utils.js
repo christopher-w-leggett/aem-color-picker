@@ -34,6 +34,15 @@ RTEExt.rte.Utils = (function(CUI){
             'thead',
             'tfoot',
             'tr'
+        ],
+
+        contentTags = [
+            'br',
+            'embed',
+            'hr',
+            'img',
+            'input',
+            'wbr'
         ];
 
     /**
@@ -407,11 +416,9 @@ RTEExt.rte.Utils = (function(CUI){
     function isContentNode(node){
         var isContent = node.nodeType === 3;
 
-        if(!isContent && node.nodeType === 1){
-            //TODO: verify and flush this out.
-            isContent = node.tagName.toLowerCase() === 'br'
-                || node.tagName.toLowerCase() === 'img';
-        }
+        //check "content tags".
+        isContent = isContent || (node.tagName
+            && contentTags.includes(node.tagName.toLowerCase()));
 
         return isContent;
     }
