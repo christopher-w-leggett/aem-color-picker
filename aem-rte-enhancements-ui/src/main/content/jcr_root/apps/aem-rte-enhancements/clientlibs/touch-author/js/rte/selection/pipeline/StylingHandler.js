@@ -41,22 +41,29 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 currentStyling = this._getAggregateStyling(clonedNode, containerTree);
 
             if(this._isContainer(node)){
+                //we are within selection and have encountered a container node.  close current styling container,
+                //clear styling node and rebuild container tree (include styles because we don't yet know where
+                //selection ends).
                 this._closeContainer(chain);
-                this._closeStylingNode();
+                this._clearStylingNode();
                 this._rebuildContainerTree(containerTree, true, chain);
             } else if(!this._activeStylingNode) {
+                //we encountered a node to style and don't yet have an active styling node.  close current styling
+                //container, create new styling node and rebuild container tree (exclude styles because we will be
+                //aggregating styles to the top level).
                 this._closeContainer(chain);
-                this._openStylingNode(clonedNode, currentStyling, chain);
+                this._createStylingNode(currentStyling, chain);
                 this._rebuildContainerTree(containerTree, false, chain);
             } else if(this._isStylingNode(clonedNode)){
-                //we encountered a styling node within our open styling node, so flatten the structure
+                //we encountered a styling node within our open styling node, so flatten the structure.  close current
+                //styling container, replace styling node and rebuild container tree (exclude styles because we will be
+                //aggregating styles to the top level).
                 this._closeContainer(chain);
-                this._closeStylingNode();
-                this._openStylingNode(clonedNode, currentStyling, chain);
+                this._createStylingNode(currentStyling, chain);
                 this._rebuildContainerTree(containerTree, false, chain);
             }
 
-            //track original and cloned node (if it wasn't added as the active styling node)
+            //track original and cloned node (if it isn't a styling node as we aggregated styles to top level)
             this._originalTree.push(node);
             if(!this._isStylingNode(clonedNode)){
                 this._stripStyles(clonedNode);
@@ -69,16 +76,15 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             var clonedNode,
                 containerTree = this._getContainerTree();
 
-            //close styling node if node is container node or styling container node.
-            //also close if we are leaving a styling node from the original tree because we have flattened this.
-            //TODO: verify nested styling tags doesn't have issue.
+            //close styling node if node is container node or styling node (as we have aggregated styles to
+            //the top level).
             if(this._isContainer(node) || this._isStylingNode(this._originalTree[this._originalTree.length - 1])){
                 this._closeContainer(chain);
-                this._closeStylingNode();
+                this._clearStylingNode();
                 this._rebuildContainerTree(containerTree, true, chain);
             } else if(this._styledTree[this._styledTree.length - 1] === this._activeStylingNode){
-                //we are moving out of active styled node, so clear it
-                this._closeStylingNode();
+                //styling tree is moving out of the active styling node, so clear it
+                this._clearStylingNode();
             }
 
             //update original tree
@@ -88,6 +94,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             clonedNode = this._styledTree.pop();
             this._addToQueue(clonedNode, false, chain.next().endInnerNode.bind(chain.next(), clonedNode, chain));
 
+            //flush queue if ending content node
             if(this._isContentNode(clonedNode)){
                 this._flushQueue();
             }
@@ -97,10 +104,10 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             var clonedNode = RTEExt.rte.Utils.cloneNode(node),
                 containerTree = this._getContainerTree();
 
-            //close open styling node
+            //close open styling node as we are not actively styling
             if(this._activeStylingNode){
                 this._closeContainer(chain);
-                this._closeStylingNode(chain);
+                this._clearStylingNode(chain);
                 this._rebuildContainerTree(containerTree, true, chain);
             }
 
@@ -116,10 +123,10 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             var clonedNode,
                 containerTree = this._getContainerTree();
 
-            //close open styling node
+            //close open styling node as we are not actively styling
             if(this._activeStylingNode){
                 this._closeContainer(chain);
-                this._closeStylingNode(chain);
+                this._clearStylingNode(chain);
                 this._rebuildContainerTree(containerTree, true, chain);
             }
 
@@ -139,10 +146,10 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         endSelection: function(chain){
             var containerTree = this._getContainerTree();
 
-            //close open styling node
+            //close open styling node as we are done styling
             if(this._activeStylingNode){
                 this._closeContainer(chain);
-                this._closeStylingNode(chain);
+                this._clearStylingNode(chain);
                 this._rebuildContainerTree(containerTree, true, chain);
             }
 
@@ -153,6 +160,9 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             chain.next().endSelection(chain);
         },
 
+        /**
+         * Adds entry to styling queue for later processing.
+         */
         _addToQueue: function(node, begin, callback){
             this._stylingQueue.push({
                 node: node,
@@ -161,6 +171,9 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             });
         },
 
+        /**
+         * flushes styling queue, will skip entries if determined that they are not essential or redundant empty nodes.
+         */
         _flushQueue: function(){
             var tempQueueEntry,
                 localQueue = [],
@@ -206,6 +219,10 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             }
         },
 
+        /**
+         * Determines if a node is considered content.
+         */
+        //TODO: move this to Utils so we can use elsewhere.
         _isContentNode: function(node){
             var isContent = node.nodeType === 3;
 
@@ -218,6 +235,10 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             return isContent;
         },
 
+        /**
+         * Closes the current container in the styling tree.  This is mainly used to reset a styling structure so a new
+         * one can be created.
+         */
         _closeContainer: function(chain){
             var tempNode;
 
@@ -228,6 +249,10 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             }
         },
 
+        /**
+         * Rebuilds the current container in the styling tree.  This is mainly used to rebuild essential formatting
+         * nodes when a new styling container is being created or styling is finished.
+         */
         _rebuildContainerTree: function(tree, includeStyling, chain){
             var containerTree = tree.slice(),
                 tempNode;
@@ -246,9 +271,9 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         /**
-         * Opens a new styling node and rebuilds active tree as necessary.
+         * Creates a new styling node.
          */
-        _openStylingNode: function(node, additionalStyles, chain){
+        _createStylingNode: function(additionalStyles, chain){
             //create styling node
             this._activeStylingNode = document.createElement(this._stylingTagName);
             if(additionalStyles){
@@ -264,15 +289,16 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         /**
-         * Closes any open styling node and rebuilds active tree as necessary.
+         * Clears any open styling node.
          */
-        _closeStylingNode: function(chain){
+        _clearStylingNode: function(chain){
             //clear active styling node
             this._activeStylingNode = null;
         },
 
         /**
-         * Applies styles to a node.
+         * Applies styles to a node.  If styles are provided, those are applied.  If no styles are provided, the global
+         * styles are applied.
          */
         _applyStyles: function(node, styles){
             var activeStyles = styles || this._styles,
@@ -319,6 +345,10 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             return stylingNode;
         },
 
+        /**
+         * Aggregates styles from styling nodes contained in a hierarchy.  This is mainly used to flatten existing
+         * styling nodes from the original tree.
+         */
         _getAggregateStyling: function(node, tree){
             var styles = {},
                 i,
@@ -346,7 +376,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         /**
-         * Gets the localized tree of the current container or styling container.
+         * Gets the localized tree of the current container.
          */
         _getContainerTree: function(){
             var containerTree = [],
