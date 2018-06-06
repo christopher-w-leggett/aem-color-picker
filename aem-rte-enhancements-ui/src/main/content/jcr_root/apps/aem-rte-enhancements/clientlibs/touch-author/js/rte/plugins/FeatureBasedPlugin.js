@@ -6,7 +6,6 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
 
     /*
         TODO: Feature ideas:
-        auto#block (bulleted list, numbered list, headings, block quote), auto#inline (bold, italic, code)
         format-ext#strikethrough (.coral3-Icon--textStrikethrough), format-ext#code (.coral3-Icon--code)
         font#size (.coral3-Icon--textSize or .coral3-Icon--textDecrease or .coral3-Icon--textIncrease), font#family,
 
