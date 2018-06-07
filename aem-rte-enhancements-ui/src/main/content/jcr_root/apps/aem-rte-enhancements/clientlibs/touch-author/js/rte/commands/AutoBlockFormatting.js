@@ -31,7 +31,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                 containerNode = cursorNode.parentNode,
                 i;
 
-            //if no error parsing dom, convert top element
+            //continue if we were provided a formatting tree
             if(execDef.value && execDef.value.tree && execDef.value.tree.length){
                 if(execDef.value.createTree){
                     //build new block tree

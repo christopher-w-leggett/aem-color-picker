@@ -60,6 +60,10 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                     blockquote: {
                         keySequence: ['>'],
                         nodeTree: ['blockquote']
+                    },
+                    pre: {
+                        keySequence: ['_'],
+                        nodeTree: ['pre']
                     }
                 }
             };
