@@ -4,6 +4,7 @@ rte/Utils.js
 rte/selection/pipeline/Generator.js
 rte/selection/pipeline/HtmlSelectionGenerator.js
 rte/selection/pipeline/Handler.js
+rte/selection/pipeline/ContentTrimmingHandler.js
 rte/selection/pipeline/StylingHandler.js
 rte/selection/pipeline/HtmlSelectionSerializer.js
 rte/selection/pipeline/PipelineChain.js

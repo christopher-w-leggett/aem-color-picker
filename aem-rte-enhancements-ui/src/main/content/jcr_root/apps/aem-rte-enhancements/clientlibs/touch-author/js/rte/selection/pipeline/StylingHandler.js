@@ -22,12 +22,18 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
 
         _activeStylingNode: null,
 
+        _keepEmptyStylingTag: false,
+
         construct: function(stylingTagName, styles){
             this._stylingTagName = stylingTagName;
-            this._styles = styles;
+            this._styles = styles || {};
             this._originalTree = [];
             this._styledTree = [];
             this._stylingQueue = [];
+        },
+
+        setKeepEmptyStylingTag: function(keep){
+            this._keepEmptyStylingTag = !!keep;
         },
 
         startSelection: function(chain){
@@ -184,7 +190,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 tempQueueEntry = this._stylingQueue.shift();
 
                 //don't process empty styling nodes.
-                if(!RTEExt.rte.Utils.canUnwrap(tempQueueEntry.node, this._stylingTagName)){
+                if(this._keepEmptyStylingTag || !RTEExt.rte.Utils.canUnwrap(tempQueueEntry.node, this._stylingTagName)){
                     //add to local queue
                     localQueue.push(tempQueueEntry);
 

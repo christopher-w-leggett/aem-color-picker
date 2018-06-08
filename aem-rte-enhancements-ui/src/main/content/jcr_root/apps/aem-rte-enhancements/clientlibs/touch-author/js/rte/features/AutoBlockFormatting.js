@@ -26,43 +26,43 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             var defaultConfig = {
                 blockElementMapping: {
                     unorderedList: {
-                        keySequence: ['*', '-'],
+                        charPattern: ['*', '-'],
                         nodeTree: ['ul', 'li']
                     },
                     orderedList: {
-                        keySequence: ['1.', '1)'],
+                        charPattern: ['1.', '1)'],
                         nodeTree: ['ol', 'li']
                     },
                     h1: {
-                        keySequence: ['#'],
+                        charPattern: ['#'],
                         nodeTree: ['h1']
                     },
                     h2: {
-                        keySequence: ['##'],
+                        charPattern: ['##'],
                         nodeTree: ['h2']
                     },
                     h3: {
-                        keySequence: ['###'],
+                        charPattern: ['###'],
                         nodeTree: ['h3']
                     },
                     h4: {
-                        keySequence: ['####'],
+                        charPattern: ['####'],
                         nodeTree: ['h4']
                     },
                     h5: {
-                        keySequence: ['#####'],
+                        charPattern: ['#####'],
                         nodeTree: ['h5']
                     },
                     h6: {
-                        keySequence: ['######'],
+                        charPattern: ['######'],
                         nodeTree: ['h6']
                     },
                     blockquote: {
-                        keySequence: ['>'],
+                        charPattern: ['>'],
                         nodeTree: ['blockquote']
                     },
                     pre: {
-                        keySequence: ['_'],
+                        charPattern: ['_'],
                         nodeTree: ['pre']
                     }
                 }
@@ -88,9 +88,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             //see if we are applying formatting
             if(this._activationKey === key && this._canCreateBlockFormatting(cursorNode, root)){
                 //find element mapping from our configuration
-                elementMappingName = Object.keys(this.config.blockElementMapping).find(function(key){
-                    return this.config.blockElementMapping.hasOwnProperty(key)
-                        && this.config.blockElementMapping[key].keySequence.includes(
+                elementMappingName = Object.keys(this.config.blockElementMapping).find(function(prop){
+                    return this.config.blockElementMapping.hasOwnProperty(prop)
+                        && this.config.blockElementMapping[prop].charPattern.includes(
                             cursorNode.textContent.substring(0, cursorNode.textContent.length - 1)
                         );
                 }.bind(this));
@@ -106,15 +106,15 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             } else if('Enter' === key && this._canRemoveBlockFormatting(cursorNode, root)){
                 //see if we should remove current formatting
                 //find element mapping from our configuration
-                elementMappingName = Object.keys(this.config.blockElementMapping).find(function(key){
+                elementMappingName = Object.keys(this.config.blockElementMapping).find(function(prop){
                     var match = true,
                         curNode = cursorNode.parentNode,
                         i;
 
-                    if(this.config.blockElementMapping.hasOwnProperty(key)){
-                        for(i = this.config.blockElementMapping[key].nodeTree.length - 1; match && i >= 0; i--){
+                    if(this.config.blockElementMapping.hasOwnProperty(prop)){
+                        for(i = this.config.blockElementMapping[prop].nodeTree.length - 1; match && i >= 0; i--){
                             match = match
-                                && this.config.blockElementMapping[key].nodeTree[i] === curNode.tagName.toLowerCase();
+                                && this.config.blockElementMapping[prop].nodeTree[i] === curNode.tagName.toLowerCase();
                             curNode = curNode.parentNode;
                         }
                         match = match && curNode === root;

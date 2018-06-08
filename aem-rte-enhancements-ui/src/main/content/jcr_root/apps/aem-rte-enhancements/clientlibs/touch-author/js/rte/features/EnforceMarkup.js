@@ -244,10 +244,19 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                     'b': {
                         'policy': 'allow'
                     },
+                    'strong': {
+                        'policy': 'allow'
+                    },
                     'i': {
                         'policy': 'allow'
                     },
+                    'em': {
+                        'policy': 'allow'
+                    },
                     'u': {
+                        'policy': 'allow'
+                    },
+                    'code': {
                         'policy': 'allow'
                     },
                     'sub': {

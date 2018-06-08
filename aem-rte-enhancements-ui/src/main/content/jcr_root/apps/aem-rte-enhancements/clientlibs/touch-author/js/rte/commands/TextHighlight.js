@@ -44,20 +44,20 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                     execDef.selection.endOffset,
                     actingRoot
                 ),
-                serializer = new RTEExt.rte.selection.pipeline.HtmlSelectionSerializer(
-                    actingRoot,
-                    function(documentFragment){
-                        RTEExt.rte.Utils.normalize(
-                            documentFragment,
-                            function(node){
-                                return !RTEExt.rte.Utils.isContainerNode(node)
-                                    && !RTEExt.rte.Utils.isStylingContainerNode(node, stylingTagName)
-                                    && !RTEExt.rte.Utils.isIgnoredNode(node);
-                            }
-                        );
-                    }
-                ),
+                serializer = new RTEExt.rte.selection.pipeline.HtmlSelectionSerializer(actingRoot),
                 pipeline = new RTEExt.rte.selection.pipeline.Pipeline(generator, serializer);
+
+            //normalize serialization
+            serializer.normalizeWith(function(documentFragment){
+                RTEExt.rte.Utils.normalize(
+                    documentFragment,
+                    function(node){
+                        return !RTEExt.rte.Utils.isContainerNode(node)
+                            && !RTEExt.rte.Utils.isStylingContainerNode(node, stylingTagName)
+                            && !RTEExt.rte.Utils.isIgnoredNode(node);
+                    }
+                );
+            });
 
             //add transformer
             pipeline.addTransformer(new RTEExt.rte.selection.pipeline.StylingHandler(
