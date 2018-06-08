@@ -18,13 +18,11 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
         getProcessingOptions: function(){
             var cmd = CUI.rte.commands.Command;
-            return cmd.PO_BOOKMARK | cmd.PO_SELECTION | cmd.PO_NODELIST;
+            return cmd.PO_BOOKMARK | cmd.PO_SELECTION;
         },
 
         execute: function(execDef){
             var root = execDef.editContext.root,
-                range = CUI.rte.Selection.saveNativeSelection(execDef.editContext)
-                    || CUI.rte.Selection.getLeadRange(execDef.editContext),
                 documentFragment = document.createDocumentFragment(),
                 writePointer = documentFragment,
                 cursorNode = execDef.selection.startNode,
@@ -48,9 +46,6 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
                     //remove container node.
                     containerNode.parentNode.removeChild(containerNode);
-
-                    //select temporary node.
-                    range.selectNode(writePointer);
                 } else {
                     //find top most container node
                     while(containerNode.parentNode !== root){
@@ -69,9 +64,6 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
                     //remove container node.
                     containerNode.parentNode.removeChild(containerNode);
-
-                    //select temporary node.
-                    range.selectNode(writePointer);
                 }
             }
         }

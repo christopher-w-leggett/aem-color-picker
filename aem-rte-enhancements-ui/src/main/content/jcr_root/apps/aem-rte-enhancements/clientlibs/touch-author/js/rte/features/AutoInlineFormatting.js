@@ -99,6 +99,10 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                     if(beginningFormatDef
                         && beginningFormatDef.distance > 0
                         && beginningFormatDef.format === activatedFormat){
+                        //mark undo step for correct undo behavior prior to modifying markup
+                        this.editorKernel.relayCmd('addundostep');
+
+                        //send command to modify markup
                         this.editorKernel.relayCmd(RTEExt.rte.commands.AutoInlineFormatting.COMMAND_NAME, {
                             startNode: beginningFormatDef.textNode,
                             startOffset: beginningFormatDef.offset,

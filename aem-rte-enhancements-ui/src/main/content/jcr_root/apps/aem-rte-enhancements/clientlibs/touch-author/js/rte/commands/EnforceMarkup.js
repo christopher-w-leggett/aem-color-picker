@@ -18,7 +18,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
         getProcessingOptions: function(){
             var cmd = CUI.rte.commands.Command;
-            return cmd.PO_BOOKMARK | cmd.PO_SELECTION | cmd.PO_NODELIST;
+            return cmd.PO_BOOKMARK;
         },
 
         execute: function(execDef){

@@ -18,7 +18,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
         getProcessingOptions: function(){
             var cmd = CUI.rte.commands.Command;
-            return cmd.PO_BOOKMARK | cmd.PO_SELECTION | cmd.PO_NODELIST;
+            return cmd.PO_BOOKMARK;
         },
 
         execute: function(execDef){
@@ -26,8 +26,6 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                 startNode = execDef.value.startNode,
                 endNode = execDef.value.endNode,
                 root = execDef.editContext.root,
-                range = CUI.rte.Selection.saveNativeSelection(execDef.editContext)
-                    || CUI.rte.Selection.getLeadRange(execDef.editContext),
                 actingRoot = RTEExt.rte.Utils.getCommonAncestor(startNode, endNode, root, function(node){
                     return node.tagName
                         && (RTEExt.rte.Utils.isContainerNode(node)
@@ -68,39 +66,8 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
             //style
             pipeline.run();
 
-
-
-            //TODO: need to get selection working.
-            // provide correct selection/nodeList parameters
-//            execDef.selection = execDef.component.createQualifiedSelection(execDef.editContext);
-//            execDef.nodeList = CUI.rte.DomProcessor.createNodeList(execDef.editContext, execDef.selection);
-
-//            var bookmark = execDef.bookmark;
-//            CUI.rte.Selection.setCaretPos(execDef.editContext, 2);
-//            var positionDef = this._moveBack(execDef.selection.startNode, execDef.selection.startOffset, 2);
-//            if(positionDef){
-//                range.setStart(positionDef.textNode, positionDef.offset);
-//                range.setEnd(positionDef.textNode, positionDef.offset);
-////                selection.startNode = positionDef.textNode;
-////                selection.startOffset = positionDef.offset;
-//                selection.startOffset -= 2;
-//                bookmark = CUI.rte.Selection.bookmarkFromProcessingSelection(execDef.editContext, {
-//                    startNode: positionDef.textNode,
-//                    startOffset: positionDef.offset
-//                });
-            }
-//            console.log(CUI.rte.Selection.getCaretPos(execDef.editContext));
-//            CUI.rte.Selection.selectRange(execDef.editContext, range);
-//            execDef.bookmark = bookmark;
-//            execDef.selection = selection;
-//
-//            return {
-//                "calleeRet": {
-//                    "bookmark": bookmark,
-//                    "selection": selection,
-//                    "geckoEnsureCaretVisibility": true
-//                }
-//            };
+            //update bookmark
+            execDef.bookmark.startPos -= (execDef.value.format.charPattern.length * 2);
         }
     });
 
