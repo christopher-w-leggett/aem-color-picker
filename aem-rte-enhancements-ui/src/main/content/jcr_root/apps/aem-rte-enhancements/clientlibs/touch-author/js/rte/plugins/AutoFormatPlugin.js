@@ -6,7 +6,6 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
 
     var GROUP = 'auto';
 
-    //TODO: auto#inline (bold, italic, code)
     RTEExt.rte.plugins.AutoFormatPlugin = new Class({
         toString: 'AutoFormatPlugin',
 
