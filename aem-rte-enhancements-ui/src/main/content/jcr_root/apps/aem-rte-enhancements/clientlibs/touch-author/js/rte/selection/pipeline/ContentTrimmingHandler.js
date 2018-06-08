@@ -84,6 +84,19 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         endOuterNode: function(node, chain){
+            //if we processed selection start and have not yet processed selection end, then this is it.
+            //strip off end content if necessary.
+            if(this._processedSelectionStart && !this._processedSelectionEnd){
+                //process end node
+                this._processEndNode(chain);
+
+                //flush queue
+                this._flushQueue();
+
+                //end was processed
+                this._processedSelectionEnd = true;
+            }
+
             //move to next handler, send last node from processed tree
             chain.next().endOuterNode(this._processedTree.pop(), chain);
         },

@@ -5,6 +5,12 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
 (function(){
     "use strict";
 
+    //TODO: Issue exists where nested styling tags will be placed around a styling container if the selection begins right before the styling container and ends right after.
+    //TODO:  - this continues forever and results in large nesting of styling tags around the styling container if user continues this selection pattern.
+    //TODO: e.g. *<a><em>somecontent</em></a>* will start wrapping recursively as user repeats styling <em><em><a><em>somecontent</em></a></em></em> it appears that AEM is causing this wrapping, needs more investigation.
+    //TODO: Possible Solutions:
+    //TODO:  - Before HtmlSelectionGenerator processes events, it ensures selection start is the beginning of a content node as opposed to the end and the selection end is the end of the content node instead of the beginning.
+    //TODO:  - This StylingHandler is updated and improved to handle wrapping styling tags around styling containers <-- this is obviously more complicated
     RTEExt.rte.selection.pipeline.StylingHandler = new Class({
         toString: 'StylingHandler',
 
@@ -101,7 +107,8 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             this._addToQueue(clonedNode, false, chain.next().endInnerNode.bind(chain.next(), clonedNode, chain));
 
             //flush queue if ending content node
-            if(RTEExt.rte.Utils.isContentNode(clonedNode)){
+            if(RTEExt.rte.Utils.isContentNode(clonedNode)
+                && (clonedNode.nodeType !== 3 || clonedNode.textContent.length)){
                 this._flushQueue();
             }
         },
@@ -144,7 +151,8 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             this._addToQueue(clonedNode, false, chain.next().endOuterNode.bind(chain.next(), clonedNode, chain));
 
             //flush queue if ending content node
-            if(RTEExt.rte.Utils.isContentNode(clonedNode)){
+            if(RTEExt.rte.Utils.isContentNode(clonedNode)
+                && (clonedNode.nodeType !== 3 || clonedNode.textContent.length)){
                 this._flushQueue();
             }
         },
@@ -195,7 +203,8 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                     localQueue.push(tempQueueEntry);
 
                     //if we encounter content, flush queue up to this point as we know we want to keep these records
-                    if(RTEExt.rte.Utils.isContentNode(tempQueueEntry.node)){
+                    if(RTEExt.rte.Utils.isContentNode(tempQueueEntry.node)
+                        && (tempQueueEntry.node.nodeType !== 3 || tempQueueEntry.node.textContent.length)){
                         //write queue up to this point
                         while(localQueue.length){
                             localQueue.shift().callback();

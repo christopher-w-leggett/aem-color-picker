@@ -23,7 +23,8 @@ RTEExt.rte.Utils = (function(CUI){
 
         stylingContainerTags = [
             'a',
-            'mark'
+            'mark',
+            'code'
         ],
 
         ignoredTags = [
