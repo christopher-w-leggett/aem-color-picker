@@ -7,10 +7,12 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
 
     //TODO: Issue exists where nested styling tags will be placed around a styling container if the selection begins right before the styling container and ends right after.
     //TODO:  - this continues forever and results in large nesting of styling tags around the styling container if user continues this selection pattern.
-    //TODO: e.g. *<a><em>somecontent</em></a>* will start wrapping recursively as user repeats styling <em><em><a><em>somecontent</em></a></em></em> it appears that AEM is causing this wrapping, needs more investigation.
+    //TODO: e.g. *<a><em>somecontent</em></a>* will start wrapping recursively as user repeats styling <em><em><a><em>somecontent</em></a></em></em> it appears that Chrome is causing this wrapping when "appending" content to a link.
     //TODO: Possible Solutions:
-    //TODO:  - Before HtmlSelectionGenerator processes events, it ensures selection start is the beginning of a content node as opposed to the end and the selection end is the end of the content node instead of the beginning.
-    //TODO:  - This StylingHandler is updated and improved to handle wrapping styling tags around styling containers <-- this is obviously more complicated
+    //TODO:  - Try to move cursor before/on keydown so it is outside the stylable container.
+    //TODO:  - Change AutoInlineFormatting to work off keydown/keypress instead.
+    //TODO:  - Add placeholder <img/> or other markup at end of styleable containers so browsers won't try to restructure markup.
+    //TODO:  - This StylingHandler is updated and improved to handle wrapping styling tags around styling containers
     RTEExt.rte.selection.pipeline.StylingHandler = new Class({
         toString: 'StylingHandler',
 

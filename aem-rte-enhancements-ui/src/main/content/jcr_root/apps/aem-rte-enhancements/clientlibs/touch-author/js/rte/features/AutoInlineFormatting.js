@@ -29,11 +29,11 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                     inlineElementMapping: {
                         bold: {
                             charPattern: ['**', '__'],
-                            tagName: 'strong'
+                            tagName: 'b'
                         },
                         italic: {
                             charPattern: ['*', '_'],
-                            tagName: 'em'
+                            tagName: 'i'
                         },
                         code: {
                             charPattern: ['`'],

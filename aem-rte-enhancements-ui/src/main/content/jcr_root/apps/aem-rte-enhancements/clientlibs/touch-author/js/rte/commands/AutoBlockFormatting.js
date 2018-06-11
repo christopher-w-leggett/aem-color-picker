@@ -53,9 +53,11 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                     }
 
                     //create new paragraph container
-                    writePointer = writePointer.appendChild(document.createElement('p'));
+                    writePointer = writePointer.appendChild(document.createElement(
+                        execDef.component.htmlRules.blockHandling.defaultEditBlockType
+                    ));
 
-                    //write temporary node for cursor selection
+                    //write temporary node for cursor selection TODO: run markup through DomCleanup instead of manually creating temp structures.  EditorKernel.execContentInterception is also very interesting.
                     writePointer = writePointer.appendChild(document.createElement('br'));
                     writePointer.setAttribute('_rte_temp_br', 'brEOB');
 
