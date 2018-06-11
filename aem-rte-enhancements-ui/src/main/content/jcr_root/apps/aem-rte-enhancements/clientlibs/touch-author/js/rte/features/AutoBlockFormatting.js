@@ -137,19 +137,21 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         _canCreateBlockFormatting: function(node, root){
-            var parentNode = node.parentNode;
+            var parentNode = node.parentNode,
+                defaultEditBlockTag = this.editorKernel.getHtmlRules().blockHandling.defaultEditBlockType;
 
             return node.nodeType === 3
                 && parentNode !== root
                 && parentNode.nodeType === 1
                 && parentNode.childNodes.length === 1
-                && (parentNode.tagName.toLowerCase() === 'p' || parentNode.tagName.toLowerCase() === 'div');
+                && parentNode.tagName.toLowerCase() === defaultEditBlockTag;
         },
 
         _canRemoveBlockFormatting: function(node, root){
             //node is empty text node, has no siblings and intermediate parent nodes don't have siblings
             var curNode = node,
-                removable = (curNode.nodeType === 3 && curNode.textContent === '') || this._isPlaceholderBr(curNode);
+                removable = (curNode.nodeType === 3 && curNode.textContent === '') || this._isPlaceholderBr(curNode),
+                defaultEditBlockTag = this.editorKernel.getHtmlRules().blockHandling.defaultEditBlockType;
 
             //check no siblings up to top level block node
             while(removable && curNode.parentNode !== root){
@@ -158,7 +160,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             }
 
             //check current top level block node isn't already the default
-            removable = removable && curNode.tagName.toLowerCase() !== 'p' && curNode.tagName.toLowerCase() !== 'div';
+            removable = removable && curNode.tagName.toLowerCase() !== defaultEditBlockTag;
 
             return removable;
         },
