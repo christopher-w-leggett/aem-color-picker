@@ -25,7 +25,6 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         notifyConfig: function(config){
-            //TODO: provide ability to remove specific default format
             var defaultConfig = {
                     inlineElementMapping: {
                         bold: {
@@ -50,7 +49,8 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             this._activationKeys = {};
             this._formatting = [];
             for(prop in this.config.inlineElementMapping){
-                if(this.config.inlineElementMapping.hasOwnProperty(prop)){
+                if(this.config.inlineElementMapping.hasOwnProperty(prop)
+                    && !this.config.inlineElementMapping[prop].disabled){
                     this.config.inlineElementMapping[prop].charPattern.forEach(function(pattern){
                         //add activation key
                         this._activationKeys[pattern[pattern.length - 1]] = true;

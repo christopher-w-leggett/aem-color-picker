@@ -51,12 +51,12 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 //we are within selection and have encountered a container node.  close up to container node,
                 //clear styling node and rebuild container tree (exclude styles
                 //because we will be aggregating styles to the top level).
-                this._closeContainer(true, chain);
+                this._closeContainer(chain);
             } else if(!this._activeStylingNode || this._isStylingNode(clonedNode)){
                 //no styling node or a new styling node encountered.  need to rebuild styling structure.
                 //close current styling container, replace styling node and rebuild container tree (exclude styles
                 //because we will be aggregating styles to the top level).
-                this._closeContainer(false, chain);
+                this._closeContainer(chain);
 
                 //create styling node and rebuild container tree before tracking new node
                 this._createStylingNode(currentStyling, chain);
@@ -90,7 +90,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             //the top level).
             if(this._isContainer(node)){
                 //close up to closest container
-                this._closeContainer(false, chain);
+                this._closeContainer(chain);
 
                 //pop off container before recreating styling nodes.
                 clonedNode = this._styledTree.pop();
@@ -106,7 +106,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             } else if(this._styledTree[this._styledTree.length - 1] === this._activeStylingNode
                 || this._isStylingNode(node)){
                 //close styling container, no need to pop off styling tree as closing container will do just that.
-                this._closeContainer(false, chain);
+                this._closeContainer(chain);
 
                 //get container tree and styling for rebuild.
                 containerTree = this._getContainerTree(),
@@ -135,10 +135,10 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
 
             if(isContainerNode){
                 //we have encountered a container node.  close up to container node, so we can restructure nodes.
-                this._closeContainer(true, chain);
+                this._closeContainer(chain);
             } else if(this._activeStylingNode){
                 //close open styling node as we are not actively styling
-                this._closeContainer(false, chain);
+                this._closeContainer(chain);
 
                 //rebuild container tree before tracking new node
                 this._clearStylingNode();
@@ -167,7 +167,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             //the top level).
             if(this._isContainer(node)){
                 //close up to closest container
-                this._closeContainer(false, chain);
+                this._closeContainer(chain);
 
                 //pop off container before rebuilding.
                 clonedNode = this._styledTree.pop();
@@ -178,7 +178,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 this._rebuildContainerTree(this._getContainerTree(), true, chain);
             } else if(this._activeStylingNode){
                 //close styling container, no need to pop off styling tree as closing container will do just that.
-                this._closeContainer(false, chain);
+                this._closeContainer(chain);
 
                 //clear any styling and rebuild tree.
                 this._clearStylingNode();
@@ -199,7 +199,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         endSelection: function(chain){
             //close open styling node as we are done styling
             if(this._activeStylingNode){
-                this._closeContainer(false, chain);
+                this._closeContainer(chain);
                 this._clearStylingNode();
             }
 
@@ -274,14 +274,11 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
          * Closes the current container in the styling tree.  This is mainly used to reset a styling structure so a new
          * one can be created.
          */
-        _closeContainer: function(ignoreStylingContainers, chain){
+        _closeContainer: function(chain){
             var tempNode;
 
             //move styled tree up to first container node.
-            while(this._styledTree.length
-                && (!this._isContainer(this._styledTree[this._styledTree.length - 1])
-                    || (ignoreStylingContainers
-                        && RTEExt.rte.Utils.isStylingContainerNode(node, this._stylingTagName)))){
+            while(this._styledTree.length && !this._isContainer(this._styledTree[this._styledTree.length - 1])){
                 tempNode = this._styledTree.pop();
                 this._addToQueue(tempNode, false, chain.next().endInnerNode.bind(chain.next(), tempNode, chain));
             }

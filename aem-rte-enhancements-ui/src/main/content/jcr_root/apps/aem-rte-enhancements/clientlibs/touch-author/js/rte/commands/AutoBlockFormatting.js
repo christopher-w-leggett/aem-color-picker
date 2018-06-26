@@ -49,6 +49,9 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
                     //remove container node.
                     containerNode.parentNode.removeChild(containerNode);
+
+                    //update bookmark
+                    execDef.bookmark.startPos -= containerNode.innerText.length;
                 } else {
                     //find top most container node
                     while(containerNode.parentNode !== root){

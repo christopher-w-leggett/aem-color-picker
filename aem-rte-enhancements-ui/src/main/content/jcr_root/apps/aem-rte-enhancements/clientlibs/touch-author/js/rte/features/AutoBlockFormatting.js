@@ -22,7 +22,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         notifyConfig: function(config){
-            //set config TODO: provide ability to remove specific default format
+            //set config
             var defaultConfig = {
                 blockElementMapping: {
                     unorderedList: {
@@ -90,6 +90,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                 //find element mapping from our configuration
                 elementMappingName = Object.keys(this.config.blockElementMapping).find(function(prop){
                     return this.config.blockElementMapping.hasOwnProperty(prop)
+                        && !this.config.blockElementMapping[prop].disabled
                         && this.config.blockElementMapping[prop].charPattern.includes(
                             cursorNode.textContent.substring(0, cursorNode.textContent.length - 1)
                         );
@@ -111,7 +112,8 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         curNode = cursorNode.parentNode,
                         i;
 
-                    if(this.config.blockElementMapping.hasOwnProperty(prop)){
+                    if(this.config.blockElementMapping.hasOwnProperty(prop)
+                        && !this.config.blockElementMapping[prop].disabled){
                         for(i = this.config.blockElementMapping[prop].nodeTree.length - 1; match && i >= 0; i--){
                             match = match
                                 && this.config.blockElementMapping[prop].nodeTree[i] === curNode.tagName.toLowerCase();
