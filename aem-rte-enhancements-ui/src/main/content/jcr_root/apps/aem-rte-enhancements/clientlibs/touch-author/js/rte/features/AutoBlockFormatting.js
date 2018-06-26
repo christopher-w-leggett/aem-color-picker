@@ -168,7 +168,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         _isPlaceholderBr: function(node){
             return node.nodeType === 1
                 && node.tagName.toLowerCase() === 'br'
-                && node.attributes.hasOwnProperty('_rte_temp_br');
+                && node.attributes.hasOwnProperty(CUI.rte.Common.BR_TEMP_ATTRIB);
         }
     });
 })(window.CUI);

@@ -17,6 +17,7 @@ RTEExt.rte.Utils = (function(CUI){
             'pre',
             'li',
             'caption',
+            'center',
             'address',
             'th',
             'td'
