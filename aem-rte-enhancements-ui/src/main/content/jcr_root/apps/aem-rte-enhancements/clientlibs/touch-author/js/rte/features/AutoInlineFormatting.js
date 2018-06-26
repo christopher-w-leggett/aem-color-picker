@@ -25,6 +25,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         notifyConfig: function(config){
+            //TODO: provide ability to remove specific default format
             var defaultConfig = {
                     inlineElementMapping: {
                         bold: {

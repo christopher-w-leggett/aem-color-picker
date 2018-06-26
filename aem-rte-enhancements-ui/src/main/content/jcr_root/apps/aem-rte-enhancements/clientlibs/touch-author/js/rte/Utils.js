@@ -1,5 +1,6 @@
 RTEExt = window.RTEExt || {};
 RTEExt.rte = RTEExt.rte || {};
+//TODO: Update so document. calls use the document from the EditContext.
 RTEExt.rte.Utils = (function(CUI){
     "use strict";
 

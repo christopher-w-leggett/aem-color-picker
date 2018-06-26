@@ -22,7 +22,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         notifyConfig: function(config){
-            //set config
+            //set config TODO: provide ability to remove specific default format
             var defaultConfig = {
                 blockElementMapping: {
                     unorderedList: {

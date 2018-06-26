@@ -27,9 +27,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                 endNode = execDef.value.endNode,
                 root = execDef.editContext.root,
                 actingRoot = RTEExt.rte.Utils.getCommonAncestor(startNode, endNode, root, function(node){
-                    return node.tagName
-                        && (RTEExt.rte.Utils.isContainerNode(node)
-                            || RTEExt.rte.Utils.isStylingContainerNode(node, stylingTagName));
+                    return node.tagName && RTEExt.rte.Utils.isContainerNode(node);
                 }),
                 generator = new RTEExt.rte.selection.pipeline.HtmlSelectionGenerator(
                     startNode,
