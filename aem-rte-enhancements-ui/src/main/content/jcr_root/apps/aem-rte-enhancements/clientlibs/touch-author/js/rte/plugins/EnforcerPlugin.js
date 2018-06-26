@@ -7,6 +7,7 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
     var GROUP = 'enforcer';
 
     //TODO: Remove word characters like smart quotes, etc.  Configuration could provide characters with replacements.
+    //TODO: Change to a post processor instead??
     RTEExt.rte.plugins.EnforcerPlugin = new Class({
         toString: 'EnforcerPlugin',
 

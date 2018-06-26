@@ -27,6 +27,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                 writePointer = documentFragment,
                 cursorNode = execDef.selection.startNode,
                 containerNode = cursorNode.parentNode,
+                emptyPlaceholderNode,
                 i;
 
             //continue if we were provided a formatting tree
@@ -37,9 +38,11 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                         writePointer = writePointer.appendChild(document.createElement(execDef.value.tree[i]));
                     }
 
-                    //write temporary node for cursor selection
-                    writePointer = writePointer.appendChild(document.createElement('br'));
-                    writePointer.setAttribute('_rte_temp_br', 'brEOB');
+                    //get temporary node for cursor selection if needed
+                    emptyPlaceholderNode = CUI.rte.DomProcessor.createEmptyLinePlaceholder(execDef.editContext, false);
+                    if(emptyPlaceholderNode){
+                        writePointer = writePointer.appendChild(emptyPlaceholderNode);
+                    }
 
                     //insert dom before container node
                     containerNode.parentNode.insertBefore(documentFragment, containerNode);
@@ -57,9 +60,11 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                         execDef.component.htmlRules.blockHandling.defaultEditBlockType
                     ));
 
-                    //write temporary node for cursor selection TODO: run markup through DomCleanup instead of manually creating temp structures.  EditorKernel.execContentInterception is also very interesting.
-                    writePointer = writePointer.appendChild(document.createElement('br'));
-                    writePointer.setAttribute('_rte_temp_br', 'brEOB');
+                    //get temporary node for cursor selection if needed
+                    emptyPlaceholderNode = CUI.rte.DomProcessor.createEmptyLinePlaceholder(execDef.editContext, false);
+                    if(emptyPlaceholderNode){
+                        writePointer = writePointer.appendChild(emptyPlaceholderNode);
+                    }
 
                     //insert dom before container node
                     containerNode.parentNode.insertBefore(documentFragment, containerNode);
