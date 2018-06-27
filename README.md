@@ -24,7 +24,7 @@ The `text-highlight` feature provides the ability to highlight text with a speci
 ### Configuration
 The following steps are provided for a starting point and outline all configuration options available.
 
-1. Add the colors plugin to the appropriate RTE configuration.
+1. Add the `colors` plugin to the appropriate RTE configuration.
     ```
     rtePlugins
      +-- ...
@@ -77,6 +77,105 @@ The following steps are provided for a starting point and outline all configurat
     ```
 1. Modify AEM AntiSamy policy to allow the `mark` tag.  This is only required if using the `text-highlight` feature 
 and rich text content is output via HTL using the html Display Context (e.g. `${content @ context='html'}`).
+
+## Auto Format Plugin
+The `auto` plugin provides authors a way to format rich text content quickly by typing character patterns.
+
+### Features
+
+#### Inline Formatting
+The `inline` feature provides automatic inline formatting options.  The default configuration allows authors to apply
+bold, italic, and code formatting.  Additional inline formatting may be configured.
+
+| Pattern | Formatting |
+| --- | --- |
+| `**text**` or `__text__` | bold |
+| `*text*` or `_text_` | italic |
+| ``` `text` ``` | code |
+
+#### Block Formatting
+The `block` feature provides automatic block formatting options.  The default configuration allows authors create
+unordered lists, ordered lists, headings level 1 through 6, blockquote and preformatted text.
+
+| Pattern | Formatting |
+| --- | --- |
+| Start a line with `*` or `-` followed by a space | unordered list |
+| Start a line with `1.` or `1)` followed by a space | ordered list |
+| Start a line with `#` followed by a space | heading 1 |
+| Start a line with `##` followed by a space | heading 2 |
+| Start a line with `###` followed by a space | heading 3 |
+| Start a line with `####` followed by a space | heading 4 |
+| Start a line with `#####` followed by a space | heading 5 |
+| Start a line with `######` followed by a space | heading 6 |
+| Start a line with `>` followed by a space | blockquote |
+| Start a line with `_` followed by a space | pre |
+
+### Configuration
+The following example is provided to outline all configuration options available.
+
+    ```
+    rtePlugins
+     +-- ...
+     +-- {nt:unstructured} auto
+     |    +-- {String[]} features="[inline,block]"
+     |    +-- {nt:unstructured} inline
+     |    |    +-- {nt:unstructured} inlineElementMapping
+     |    |    |    +-- {nt:unstructured} bold
+     |    |    |    |    +-- {String[]} charPattern="[**,__]"
+     |    |    |    |    +-- {String} tagName="b"
+     |    |    |    |    +-- {Boolean} disabled="false"
+     |    |    |    +-- {nt:unstructured} italic
+     |    |    |    |    +-- {String[]} charPattern="[*,_]"
+     |    |    |    |    +-- {String} tagName="i"
+     |    |    |    |    +-- {Boolean} disabled="false"
+     |    |    |    +-- {nt:unstructured} code
+     |    |    |    |    +-- {String[]} charPattern="[`]"
+     |    |    |    |    +-- {String} tagName="code"
+     |    |    |    |    +-- {Boolean} disabled="false"
+     |    +-- {nt:unstructured} block
+     |    |    +-- {nt:unstructured} blockElementMapping
+     |    |    |    +-- {nt:unstructured} unorderedList
+     |    |    |    |    +-- {String[]} charPattern="[*,-]"
+     |    |    |    |    +-- {String[]} nodeTree="[ul,li]"
+     |    |    |    |    +-- {Boolean} disabled="false"
+     |    |    |    +-- {nt:unstructured} orderedList
+     |    |    |    |    +-- {String[]} charPattern="[1.,1)]"
+     |    |    |    |    +-- {String[]} nodeTree="[ol,li]"
+     |    |    |    |    +-- {Boolean} disabled="false"
+     |    |    |    +-- {nt:unstructured} h1
+     |    |    |    |    +-- {String[]} charPattern="[#]"
+     |    |    |    |    +-- {String[]} nodeTree="[h1]"
+     |    |    |    |    +-- {Boolean} disabled="false"
+     |    |    |    +-- {nt:unstructured} h2
+     |    |    |    |    +-- {String[]} charPattern="[##]"
+     |    |    |    |    +-- {String[]} nodeTree="[h2]"
+     |    |    |    |    +-- {Boolean} disabled="false"
+     |    |    |    +-- {nt:unstructured} h3
+     |    |    |    |    +-- {String[]} charPattern="[###]"
+     |    |    |    |    +-- {String[]} nodeTree="[h3]"
+     |    |    |    |    +-- {Boolean} disabled="false"
+     |    |    |    +-- {nt:unstructured} h4
+     |    |    |    |    +-- {String[]} charPattern="[####]"
+     |    |    |    |    +-- {String[]} nodeTree="[h4]"
+     |    |    |    |    +-- {Boolean} disabled="false"
+     |    |    |    +-- {nt:unstructured} h5
+     |    |    |    |    +-- {String[]} charPattern="[#####]"
+     |    |    |    |    +-- {String[]} nodeTree="[h5]"
+     |    |    |    |    +-- {Boolean} disabled="false"
+     |    |    |    +-- {nt:unstructured} h6
+     |    |    |    |    +-- {String[]} charPattern="[######]"
+     |    |    |    |    +-- {String[]} nodeTree="[h6]"
+     |    |    |    |    +-- {Boolean} disabled="false"
+     |    |    |    +-- {nt:unstructured} blockquote
+     |    |    |    |    +-- {String[]} charPattern="[>]"
+     |    |    |    |    +-- {String[]} nodeTree="[blockquote]"
+     |    |    |    |    +-- {Boolean} disabled="false"
+     |    |    |    +-- {nt:unstructured} pre
+     |    |    |    |    +-- {String[]} charPattern="[_]"
+     |    |    |    |    +-- {String[]} nodeTree="[pre]"
+     |    |    |    |    +-- {Boolean} disabled="false"
+     +-- ...
+    ```
 
 ## Enforcer Plugin
 The `enforcer` plugin provides a way to restrict what markup is allowed within the RTE.  This plugins default
