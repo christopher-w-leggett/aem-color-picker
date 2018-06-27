@@ -4,24 +4,23 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
 (function(CUI, $){
     "use strict";
 
-    var GROUP = 'enforcer';
+    var GROUP = 'auto';
 
-    //TODO: Remove word characters like smart quotes, etc.  Configuration could provide characters with replacements.
-    //TODO: Change to a post processor instead??
-    RTEExt.rte.plugins.EnforcerPlugin = new Class({
-        toString: 'EnforcerPlugin',
+    RTEExt.rte.plugins.AutoFormatPlugin = new Class({
+        toString: 'AutoFormatPlugin',
 
         extend: RTEExt.rte.plugins.FeatureBasedPlugin,
 
         _initFeatures: function(editorKernel, pluginId){
             this.features = [
-                new RTEExt.rte.features.EnforceMarkup(editorKernel, this)
+                new RTEExt.rte.features.AutoBlockFormatting(editorKernel, this),
+                new RTEExt.rte.features.AutoInlineFormatting(editorKernel, this)
             ];
         }
     });
 
     //register plugin
     CUI.rte.plugins.PluginRegistry.register(
-        GROUP, RTEExt.rte.plugins.EnforcerPlugin
+        GROUP, RTEExt.rte.plugins.AutoFormatPlugin
     );
 })(window.CUI, window.jQuery);

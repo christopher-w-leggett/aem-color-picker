@@ -18,8 +18,11 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
 
         _writePointer: null,
 
-        construct: function(root, normalize){
+        construct: function(root){
             this._root = root;
+        },
+
+        normalizeWith: function(normalize){
             this._normalize = normalize;
         },
 

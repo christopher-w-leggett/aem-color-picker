@@ -1,5 +1,6 @@
 RTEExt = window.RTEExt || {};
 RTEExt.rte = RTEExt.rte || {};
+//TODO: Update so document. calls use the document from the EditContext.
 RTEExt.rte.Utils = (function(CUI){
     "use strict";
 
@@ -16,6 +17,7 @@ RTEExt.rte.Utils = (function(CUI){
             'pre',
             'li',
             'caption',
+            'center',
             'address',
             'th',
             'td'
@@ -23,7 +25,8 @@ RTEExt.rte.Utils = (function(CUI){
 
         stylingContainerTags = [
             'a',
-            'mark'
+            'mark',
+            'code'
         ],
 
         ignoredTags = [

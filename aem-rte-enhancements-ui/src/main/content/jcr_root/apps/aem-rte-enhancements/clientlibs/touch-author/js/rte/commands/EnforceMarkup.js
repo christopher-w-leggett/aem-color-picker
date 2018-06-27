@@ -18,16 +18,17 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
         getProcessingOptions: function(){
             var cmd = CUI.rte.commands.Command;
-            return cmd.PO_BOOKMARK | cmd.PO_SELECTION | cmd.PO_NODELIST;
+            return cmd.PO_BOOKMARK;
         },
 
         execute: function(execDef){
-            var root = execDef.editContext.root;
+            var root = execDef.editContext.root,
+                defaultEditBlockTag = execDef.component.htmlRules.blockHandling.defaultEditBlockType;
 
-            this.enforceSubtree(root, root, execDef.value || {});
+            this.enforceSubtree(root, root, execDef.value || {}, defaultEditBlockTag);
         },
 
-        enforceSubtree: function(node, root, policies){
+        enforceSubtree: function(node, root, policies, defaultEditBlockTag){
             var curChild = node.firstChild,
                 curStyle,
                 markerNode;
@@ -37,12 +38,12 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                 markerNode = curChild.previousSibling || node;
 
                 //enforce current child (if child is removed, null is returned)
-                curChild = this.enforce(curChild, root, policies);
+                curChild = this.enforce(curChild, root, policies, defaultEditBlockTag);
 
                 //continue processing subtree
                 if(curChild){
                     //current child was not stripped so continue down tree.
-                    this.enforceSubtree(curChild, root, policies);
+                    this.enforceSubtree(curChild, root, policies, defaultEditBlockTag);
                     curChild = curChild.nextSibling;
                 }else{
                     //current child was stripped out, so just move to next sibling using marker node.
@@ -51,7 +52,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
             }
         },
 
-        enforce: function(node, root, policies){
+        enforce: function(node, root, policies, defaultEditBlockTag){
             var enforcedNode = node,
                 markerNode,
                 activePolicy,
@@ -68,7 +69,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                 if(activePolicy.policy !== 'allow'){
                     if(enforcedNode.parentNode === root){
                         //don't put text directly under root.
-                        enforcedNode = RTEExt.rte.Utils.convertTagName(enforcedNode, 'p');
+                        enforcedNode = RTEExt.rte.Utils.convertTagName(enforcedNode, defaultEditBlockTag);
                     }else{
                         RTEExt.rte.Utils.unwrap(enforcedNode);
                         enforcedNode = null;

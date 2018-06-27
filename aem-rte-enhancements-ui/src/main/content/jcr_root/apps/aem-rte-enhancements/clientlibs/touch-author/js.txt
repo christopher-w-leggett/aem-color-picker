@@ -4,6 +4,7 @@ rte/Utils.js
 rte/selection/pipeline/Generator.js
 rte/selection/pipeline/HtmlSelectionGenerator.js
 rte/selection/pipeline/Handler.js
+rte/selection/pipeline/ContentTrimmingHandler.js
 rte/selection/pipeline/StylingHandler.js
 rte/selection/pipeline/HtmlSelectionSerializer.js
 rte/selection/pipeline/PipelineChain.js
@@ -13,15 +14,20 @@ rte/selection/pipeline/Pipeline.js
 rte/ui/dialogs/TextColor.js
 rte/ui/dialogs/TextHighlight.js
 
+rte/commands/AutoBlockFormatting.js
+rte/commands/AutoInlineFormatting.js
 rte/commands/EnforceMarkup.js
 rte/commands/TextColor.js
 rte/commands/TextHighlight.js
 
 rte/features/Feature.js
+rte/features/AutoBlockFormatting.js
+rte/features/AutoInlineFormatting.js
 rte/features/EnforceMarkup.js
 rte/features/TextColor.js
 rte/features/TextHighlight.js
 
 rte/plugins/FeatureBasedPlugin.js
+rte/plugins/AutoFormatPlugin.js
 rte/plugins/EnforcerPlugin.js
 rte/plugins/ColorsPlugin.js

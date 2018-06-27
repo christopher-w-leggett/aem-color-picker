@@ -14,6 +14,10 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         config: {},
 
         construct: function (editorKernel, plugin) {
+            this._init(editorKernel, plugin);
+        },
+
+        _init: function(editorKernel, plugin) {
             this.editorKernel = editorKernel;
             this.plugin = plugin;
         },

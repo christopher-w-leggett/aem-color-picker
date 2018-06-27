@@ -23,7 +23,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
         getProcessingOptions: function(){
             var cmd = CUI.rte.commands.Command;
-            return cmd.PO_BOOKMARK | cmd.PO_SELECTION | cmd.PO_NODELIST;
+            return cmd.PO_BOOKMARK | cmd.PO_SELECTION;
         },
 
         execute: function(execDef){
@@ -33,9 +33,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                 endNode = execDef.selection.endNode,
                 root = execDef.editContext.root,
                 actingRoot = RTEExt.rte.Utils.getCommonAncestor(startNode, endNode, root, function(node){
-                    return node.tagName
-                        && (RTEExt.rte.Utils.isContainerNode(node)
-                            || RTEExt.rte.Utils.isStylingContainerNode(node, stylingTagName));
+                    return node.tagName && RTEExt.rte.Utils.isContainerNode(node);
                 }),
                 generator = new RTEExt.rte.selection.pipeline.HtmlSelectionGenerator(
                     startNode,
@@ -44,20 +42,20 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                     execDef.selection.endOffset,
                     actingRoot
                 ),
-                serializer = new RTEExt.rte.selection.pipeline.HtmlSelectionSerializer(
-                    actingRoot,
-                    function(documentFragment){
-                        RTEExt.rte.Utils.normalize(
-                            documentFragment,
-                            function(node){
-                                return !RTEExt.rte.Utils.isContainerNode(node)
-                                    && !RTEExt.rte.Utils.isStylingContainerNode(node, stylingTagName)
-                                    && !RTEExt.rte.Utils.isIgnoredNode(node);
-                            }
-                        );
-                    }
-                ),
+                serializer = new RTEExt.rte.selection.pipeline.HtmlSelectionSerializer(actingRoot),
                 pipeline = new RTEExt.rte.selection.pipeline.Pipeline(generator, serializer);
+
+            //normalize serialization
+            serializer.normalizeWith(function(documentFragment){
+                RTEExt.rte.Utils.normalize(
+                    documentFragment,
+                    function(node){
+                        return !RTEExt.rte.Utils.isContainerNode(node)
+                            && !RTEExt.rte.Utils.isStylingContainerNode(node, stylingTagName)
+                            && !RTEExt.rte.Utils.isIgnoredNode(node);
+                    }
+                );
+            });
 
             //add transformer
             pipeline.addTransformer(new RTEExt.rte.selection.pipeline.StylingHandler(stylingTagName, styles));
