@@ -21,6 +21,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         },
 
         execute: function(execDef){
+            //TODO: only run if selection is provided
             var stylingTagName = execDef.value.tagName,
                 startNode = execDef.selection.startNode,
                 endNode = execDef.selection.endNode,

@@ -51,6 +51,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         icon: 'textStrikethrough'
                     }
                 },
+                defaultFormatTooltip,
                 formatName,
                 formatTooltip,
                 tooltipKeys;
@@ -66,16 +67,18 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         'text': 'plugins.' + RTEExt.rte.Groups.FORMAT_EXT + '.' + formatName + '.text'
                     };
 
-                    formatTooltip = {
+                    defaultFormatTooltip = {
                         'title': CUI.rte.Utils.i18n(tooltipKeys.title),
                         'text': CUI.rte.Utils.i18n(tooltipKeys.text)
                     };
-                    if(formatTooltip.title === tooltipKeys.title){
-                        formatTooltip.title = formatName.substring(0, 1).toUpperCase() + formatName.substring(1);
+                    if(defaultFormatTooltip.title === tooltipKeys.title){
+                        defaultFormatTooltip.title = formatName.substring(0, 1).toUpperCase() + formatName.substring(1);
                     }
-                    if(formatTooltip.text === tooltipKeys.text){
-                        formatTooltip.text = formatName.substring(0, 1).toUpperCase() + formatName.substring(1);
+                    if(defaultFormatTooltip.text === tooltipKeys.text){
+                        defaultFormatTooltip.text = formatName.substring(0, 1).toUpperCase() + formatName.substring(1);
                     }
+                    formatTooltip = this.config[formatName].tooltip || {};
+                    CUI.rte.Utils.applyDefaults(formatTooltip, defaultFormatTooltip);
 
                     this._formats.push({
                         'name': formatName,
