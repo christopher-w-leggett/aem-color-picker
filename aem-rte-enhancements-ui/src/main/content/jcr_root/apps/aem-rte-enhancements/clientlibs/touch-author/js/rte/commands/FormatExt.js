@@ -4,11 +4,10 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 (function(CUI){
     "use strict";
 
-    var COMMAND_NAME = 'text-color',
-        COMMAND_REF = RTEExt.rte.Groups.COLORS + '#' + COMMAND_NAME;
+    var COMMAND_NAME = 'format-ext';
 
-    RTEExt.rte.commands.TextColor = new Class({
-        toString: 'TextColor',
+    RTEExt.rte.commands.FormatExt = new Class({
+        toString: 'FormatExt',
 
         extend: CUI.rte.commands.Command,
 
@@ -22,8 +21,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         },
 
         execute: function(execDef){
-            var stylingTagName = 'span',
-                styles = {'color': execDef.value},
+            var stylingTagName = execDef.value.tagName,
                 startNode = execDef.selection.startNode,
                 endNode = execDef.selection.endNode,
                 root = execDef.editContext.root,
@@ -38,7 +36,9 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                     actingRoot
                 ),
                 serializer = new RTEExt.rte.selection.pipeline.HtmlSelectionSerializer(actingRoot),
-                pipeline = new RTEExt.rte.selection.pipeline.Pipeline(generator, serializer);
+                pipeline = new RTEExt.rte.selection.pipeline.Pipeline(generator, serializer),
+                stylingHandler = new RTEExt.rte.selection.pipeline.StylingHandler(stylingTagName);
+
 
             //normalize serialization
             serializer.normalizeWith(function(documentFragment){
@@ -52,19 +52,21 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                 );
             });
 
+            //don't purge empty styling tags if we are applying the tag
+            stylingHandler.setKeepEmptyStylingTag(execDef.value.applyTag);
+
             //add transformer
-            pipeline.addTransformer(new RTEExt.rte.selection.pipeline.StylingHandler(stylingTagName, styles));
+            pipeline.addTransformer(stylingHandler);
 
             //style
             pipeline.run();
         }
     });
 
-    RTEExt.rte.commands.TextColor.COMMAND_NAME = COMMAND_NAME;
-    RTEExt.rte.commands.TextColor.COMMAND_REF = COMMAND_REF;
+    RTEExt.rte.commands.FormatExt.COMMAND_NAME = COMMAND_NAME;
 
     //register command
     CUI.rte.commands.CommandRegistry.register(
-        COMMAND_NAME, RTEExt.rte.commands.TextColor
+        COMMAND_NAME, RTEExt.rte.commands.FormatExt
     );
 })(window.CUI);

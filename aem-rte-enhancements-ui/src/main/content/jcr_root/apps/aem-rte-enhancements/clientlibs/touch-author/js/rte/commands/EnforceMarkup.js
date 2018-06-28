@@ -4,8 +4,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 (function(CUI){
     "use strict";
 
-    var GROUP = 'enforcer',
-        COMMAND_NAME = 'markup';
+    var COMMAND_NAME = 'markup';
 
     RTEExt.rte.commands.EnforceMarkup = new Class({
         toString: 'EnforceMarkup',

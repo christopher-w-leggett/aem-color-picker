@@ -85,13 +85,14 @@ The `auto` plugin provides authors a way to format rich text content quickly by 
 
 #### Inline Formatting
 The `inline` feature provides automatic inline formatting options.  The default configuration allows authors to apply
-bold, italic, and code formatting.  Additional inline formatting may be configured.
+bold, italic, code and strikethrough formatting.  Additional inline formatting may be configured.
 
 | Pattern | Formatting |
 | --- | --- |
 | `**text**` or `__text__` | bold |
 | `*text*` or `_text_` | italic |
 | ``` `text` ``` | code |
+| `~~text~~` | strikethrough |
 
 #### Block Formatting
 The `block` feature provides automatic block formatting options.  The default configuration allows authors create
@@ -176,6 +177,66 @@ The following example is provided to outline all configuration options available
      |    |    |    |    +-- {Boolean} disabled="false"
      +-- ...
     ```
+
+## Format Extension Plugin
+The `format-ext` plugin provides a configurable way to add additional formats to the rich text editors toolbar.  This
+may be useful if you want a toolbar option for managing inline formats added via the `auto` plugin or if you want to
+provide the additional inline formats from the `auto` plugin without automatic inline formatting.
+
+### Features
+
+#### Format Extension
+The `format-ext` feature provides the ability to configure the additional inline formats in the toolbar.
+
+### Configuration
+The following steps are provided for a starting point and outline all configuration options available.
+
+1. Add the `format-ext` plugin to the appropriate RTE configuration.
+    ```
+    rtePlugins
+     +-- ...
+     +-- {nt:unstructured} format-ext
+     |    +-- {String[]} features="[format-ext]"
+     |    +-- {nt:unstructured} format-ext
+     |    |    +-- {nt:unstructured} code
+     |    |    |    +-- {String} tagName="code"
+     |    |    |    +-- {String} icon="code"
+     |    |    |    +-- {Boolean} disabled="false"
+     |    |    |    +-- {nt:unstructured} tooltip
+     |    |    |    |    +-- {String} title="Code"
+     |    |    |    |    +-- {String} text="Code"
+     |    |    +-- {nt:unstructured} strikethrough
+     |    |    |    +-- {String} tagName="s"
+     |    |    |    +-- {String} icon="textStrikethrough"
+     |    |    |    +-- {Boolean} disabled="false"
+     |    |    |    +-- {nt:unstructured} tooltip
+     |    |    |    |    +-- {String} title="Strikethrough"
+     |    |    |    |    +-- {String} text="Strikethrough"
+     +-- ...
+    ```
+1. Set appropriate UI settings so additional format icons display.  The command reference follows the format
+`format-ext#<format-name>`.
+    ```
+    uiSettings
+     +-- {nt:unstructured} cui
+     |    +-- ...
+     |    +-- {nt:unstructured} inline
+     |    |    +-- {String[]} toolbar="[...,#format,...]"
+     |    |    +-- {nt:unstructured} popovers
+     |    |    |    +-- ...
+     |    |    |    +-- {nt:unstructured} format
+     |    |    |    |    +-- {String[]} items="[...,format-ext#code,format-ext#strikethrough,...]"
+     |    |    |    |    +-- {String} ref="format"
+     |    |    |    +-- ...
+     |    +-- {nt:unstructured} dialogFullScreen
+     |    |    +-- {String[]} toolbar="[...,format-ext#code,format-ext#strikethrough,...]"
+     |    |    +-- ...
+     |    +-- {nt:unstructured} fullscreen
+     |    |    +-- {String[]} toolbar="[...,format-ext#code,format-ext#strikethrough,...]"
+     |    |    +-- ...
+     |    +-- ...
+    ```
+
 
 ## Enforcer Plugin
 The `enforcer` plugin provides a way to restrict what markup is allowed within the RTE.  This plugins default

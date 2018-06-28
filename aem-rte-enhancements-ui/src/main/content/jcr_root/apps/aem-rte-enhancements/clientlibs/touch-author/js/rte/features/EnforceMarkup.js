@@ -259,6 +259,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                     'code': {
                         'policy': 'allow'
                     },
+                    's': {
+                        'policy': 'allow'
+                    },
                     'sub': {
                         'policy': 'allow'
                     },

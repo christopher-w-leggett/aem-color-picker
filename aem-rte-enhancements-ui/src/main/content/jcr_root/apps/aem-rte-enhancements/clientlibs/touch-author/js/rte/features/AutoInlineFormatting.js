@@ -38,6 +38,10 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                         code: {
                             charPattern: ['`'],
                             tagName: 'code'
+                        },
+                        strikethrough: {
+                            charPattern: ['~~'],
+                            tagName: 's'
                         }
                     }
                 },

@@ -1,10 +1,8 @@
 RTEExt = window.RTEExt || {};
 RTEExt.rte = RTEExt.rte || {};
 RTEExt.rte.plugins = RTEExt.rte.plugins || {};
-(function(CUI, $){
+(function(CUI){
     "use strict";
-
-    var GROUP = 'colors';
 
     RTEExt.rte.plugins.ColorsPlugin = new Class({
         toString: 'ColorsPlugin',
@@ -21,6 +19,6 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
 
     //register plugin
     CUI.rte.plugins.PluginRegistry.register(
-        GROUP, RTEExt.rte.plugins.ColorsPlugin
+        RTEExt.rte.Groups.COLORS, RTEExt.rte.plugins.ColorsPlugin
     );
-})(window.CUI, window.jQuery);
+})(window.CUI);

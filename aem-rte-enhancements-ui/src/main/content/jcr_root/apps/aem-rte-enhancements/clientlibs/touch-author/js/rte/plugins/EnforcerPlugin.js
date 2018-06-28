@@ -1,10 +1,8 @@
 RTEExt = window.RTEExt || {};
 RTEExt.rte = RTEExt.rte || {};
 RTEExt.rte.plugins = RTEExt.rte.plugins || {};
-(function(CUI, $){
+(function(CUI){
     "use strict";
-
-    var GROUP = 'enforcer';
 
     //TODO: Remove word characters like smart quotes, etc.  Configuration could provide characters with replacements.
     //TODO: Change to a post processor instead??
@@ -22,6 +20,6 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
 
     //register plugin
     CUI.rte.plugins.PluginRegistry.register(
-        GROUP, RTEExt.rte.plugins.EnforcerPlugin
+        RTEExt.rte.Groups.ENFORCER, RTEExt.rte.plugins.EnforcerPlugin
     );
-})(window.CUI, window.jQuery);
+})(window.CUI);

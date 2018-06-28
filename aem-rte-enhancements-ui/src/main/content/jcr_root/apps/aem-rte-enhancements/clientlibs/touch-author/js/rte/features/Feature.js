@@ -40,7 +40,8 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         execute: function(command, value, envOptions){
-            // may be overridden for dialog based features.
+            // may be overridden.
+            this.editorKernel.relayCmd(command);
         },
 
         updateState: function(selDef){
