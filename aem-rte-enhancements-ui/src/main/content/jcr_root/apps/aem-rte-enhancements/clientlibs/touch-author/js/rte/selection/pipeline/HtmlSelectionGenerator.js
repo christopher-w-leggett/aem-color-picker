@@ -25,54 +25,56 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 writePointer,
                 clonedNode;
 
-            //create internal document fragment to hold copied hierarchy
-            this._root = document.createDocumentFragment();
+            if(root){
+                //create internal document fragment to hold copied hierarchy
+                this._root = document.createDocumentFragment();
 
-            //set initial pointers
-            readPointer = root.firstChild;
-            writePointer = this._root;
+                //set initial pointers
+                readPointer = root.firstChild;
+                writePointer = this._root;
 
-            //copy hierarchy
-            while(readPointer){
-                //clone node and append clone to our copied hierarchy
-                clonedNode = RTEExt.rte.Utils.cloneNode(readPointer);
-                writePointer.appendChild(clonedNode);
+                //copy hierarchy
+                while(readPointer){
+                    //clone node and append clone to our copied hierarchy
+                    clonedNode = RTEExt.rte.Utils.cloneNode(readPointer);
+                    writePointer.appendChild(clonedNode);
 
-                //set start/end nodes if applicable
-                if(startNode === readPointer){
-                    this._startNode = clonedNode;
-                    this._startOffset = this._startNode.nodeType === 3 ? startOffset : null;
-                }
-                if(endNode === readPointer){
-                    this._endNode = clonedNode;
-                    this._endOffset = this._endNode.nodeType === 3 ? endOffset : null;
-                }
-
-                //move to next node.
-                if(readPointer.firstChild){
-                    //when moving down a tree, readPointer moves down
-                    //and writePointer moves to last child.
-                    readPointer = readPointer.firstChild;
-                    writePointer = writePointer.lastChild;
-                } else if(readPointer.nextSibling){
-                    //when moving across a tree, readPointer moves across and writePointer stays the same.
-                    readPointer = readPointer.nextSibling;
-                } else {
-                    //when moving up a tree, readPointer moves to first parents next sibling and
-                    //writePointer follows the same pattern
-                    while(!readPointer.nextSibling && readPointer !== root){
-                        //move readPointer and writePointer to parent
-                        readPointer = readPointer.parentNode;
-                        writePointer = writePointer.parentNode ? writePointer.parentNode : writePointer;
+                    //set start/end nodes if applicable
+                    if(startNode === readPointer){
+                        this._startNode = clonedNode;
+                        this._startOffset = this._startNode.nodeType === 3 ? startOffset : null;
+                    }
+                    if(endNode === readPointer){
+                        this._endNode = clonedNode;
+                        this._endOffset = this._endNode.nodeType === 3 ? endOffset : null;
                     }
 
-                    //set readPointer to correct location
-                    if(readPointer === root){
-                        //if we are at root, stop processing
-                        readPointer = null;
-                    } else {
-                        //if we are not at root, we found a nextSibling, so point to it.
+                    //move to next node.
+                    if(readPointer.firstChild){
+                        //when moving down a tree, readPointer moves down
+                        //and writePointer moves to last child.
+                        readPointer = readPointer.firstChild;
+                        writePointer = writePointer.lastChild;
+                    } else if(readPointer.nextSibling){
+                        //when moving across a tree, readPointer moves across and writePointer stays the same.
                         readPointer = readPointer.nextSibling;
+                    } else {
+                        //when moving up a tree, readPointer moves to first parents next sibling and
+                        //writePointer follows the same pattern
+                        while(!readPointer.nextSibling && readPointer !== root){
+                            //move readPointer and writePointer to parent
+                            readPointer = readPointer.parentNode;
+                            writePointer = writePointer.parentNode ? writePointer.parentNode : writePointer;
+                        }
+
+                        //set readPointer to correct location
+                        if(readPointer === root){
+                            //if we are at root, stop processing
+                            readPointer = null;
+                        } else {
+                            //if we are not at root, we found a nextSibling, so point to it.
+                            readPointer = readPointer.nextSibling;
+                        }
                     }
                 }
             }
