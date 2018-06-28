@@ -4,7 +4,11 @@ RTEExt.rte.features = RTEExt.rte.features || {};
 (function(CUI){
     "use strict";
 
-    var NAME = 'text-highlight';
+    var NAME = 'text-highlight',
+        TOOLTIP_KEYS = {
+            'title': 'plugins.' + RTEExt.rte.Groups.COLORS + '.' + NAME + '.title',
+            'text': 'plugins.' + RTEExt.rte.Groups.COLORS + '.' + NAME + '.text'
+        };
 
     RTEExt.rte.features.TextHighlight = new Class({
         toString: 'TextHighlight',
@@ -47,13 +51,13 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                 'tooltip': {}
             };
             defaultConfig.tooltip = {
-                'title': CUI.rte.Utils.i18n(RTEExt.rte.commands.TextHighlight.TOOLTIP_KEYS.title),
-                'text': CUI.rte.Utils.i18n(RTEExt.rte.commands.TextHighlight.TOOLTIP_KEYS.text)
+                'title': CUI.rte.Utils.i18n(TOOLTIP_KEYS.title),
+                'text': CUI.rte.Utils.i18n(TOOLTIP_KEYS.text)
             };
-            if(defaultConfig.tooltip.title === RTEExt.rte.commands.TextHighlight.TOOLTIP_KEYS.title){
+            if(defaultConfig.tooltip.title === TOOLTIP_KEYS.title){
                 defaultConfig.tooltip.title = 'Text Highlight';
             }
-            if(defaultConfig.tooltip.text === RTEExt.rte.commands.TextHighlight.TOOLTIP_KEYS.text){
+            if(defaultConfig.tooltip.text === TOOLTIP_KEYS.text){
                 defaultConfig.tooltip.text = 'Text Highlight';
             }
             CUI.rte.Utils.applyDefaults(config, defaultConfig);

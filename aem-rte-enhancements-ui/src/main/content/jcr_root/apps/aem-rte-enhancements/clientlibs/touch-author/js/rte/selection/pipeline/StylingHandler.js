@@ -22,7 +22,9 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
 
         _activeStylingNode: null,
 
-        _keepEmptyStylingTag: false,
+        _withinSelection: null,
+
+        _keepEmptyStylingTag: null,
 
         construct: function(stylingTagName, styles){
             this._stylingTagName = stylingTagName;
@@ -30,6 +32,8 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             this._originalTree = [];
             this._styledTree = [];
             this._stylingQueue = [];
+            this._withinSelection = false;
+            this._keepEmptyStylingTag = false;
         },
 
         setKeepEmptyStylingTag: function(keep){
@@ -58,17 +62,24 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 //because we will be aggregating styles to the top level).
                 this._closeContainer(chain);
 
+                //consider newly opened styling nodes within the selection
+                this._withinSelection = true;
+
                 //create styling node and rebuild container tree before tracking new node
                 this._createStylingNode(currentStyling, chain);
                 this._rebuildContainerTree(containerTree, false, chain);
             }
+
+            //mark that we are within the selection if not already marked, this is done here so any existing
+            //hierarchy is still considered outside the selection when closed.
+            this._withinSelection = true;
 
             //track original and cloned node (if it isn't a styling node as we aggregated styles to top level)
             this._originalTree.push(node);
             if(!this._isStylingNode(clonedNode)){
                 this._stripStyles(clonedNode);
                 this._styledTree.push(clonedNode);
-                this._addToQueue(clonedNode, true, chain.next().beginInnerNode.bind(chain.next(), clonedNode, chain));
+                this._addToQueue(clonedNode, true, chain);
             }
 
             if(isContainerNode){
@@ -79,9 +90,11 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         endInnerNode: function(node, chain){
-            var clonedNode,
-                containerTree,
+            var containerTree,
                 currentStyling;
+
+            //mark that we are within the selection if not already marked
+            this._withinSelection = true;
 
             //pop off original tree so node isn't considered when rebuilding container tree
             this._originalTree.pop();
@@ -93,8 +106,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 this._closeContainer(chain);
 
                 //pop off container before recreating styling nodes.
-                clonedNode = this._styledTree.pop();
-                this._addToQueue(clonedNode, false, chain.next().endInnerNode.bind(chain.next(), clonedNode, chain));
+                this._addToQueue(this._styledTree.pop(), false, chain);
 
                 //get container tree and styling for rebuild.
                 containerTree = this._getContainerTree(),
@@ -117,8 +129,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 this._rebuildContainerTree(containerTree, false, chain);
             } else {
                 //normal end node
-                clonedNode = this._styledTree.pop();
-                this._addToQueue(clonedNode, false, chain.next().endInnerNode.bind(chain.next(), clonedNode, chain));
+                this._addToQueue(this._styledTree.pop(), false, chain);
             }
 
             //flush queue if ending content node
@@ -140,15 +151,22 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 //close open styling node as we are not actively styling
                 this._closeContainer(chain);
 
+                //consider newly rebuilt hierarchy outside the selection
+                this._withinSelection = false;
+
                 //rebuild container tree before tracking new node
                 this._clearStylingNode();
                 this._rebuildContainerTree(containerTree, true, chain);
             }
 
+            //mark that we are outside the selection if not already marked, this is done here so any new styling
+            //hierarchy is still considered within the selection when closed.
+            this._withinSelection = false;
+
             //track original and cloned node
             this._originalTree.push(node);
             this._styledTree.push(clonedNode);
-            this._addToQueue(clonedNode, true, chain.next().beginOuterNode.bind(chain.next(), clonedNode, chain));
+            this._addToQueue(clonedNode, true, chain);
 
             if(isContainerNode){
                 //clear any styling node and rebuild tree.
@@ -158,7 +176,8 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         endOuterNode: function(node, chain){
-            var clonedNode;
+            //mark that we are outside the selection if not already marked
+            this._withinSelection = false;
 
             //pop off original tree so node isn't considered when rebuilding container tree
             this._originalTree.pop();
@@ -170,8 +189,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 this._closeContainer(chain);
 
                 //pop off container before rebuilding.
-                clonedNode = this._styledTree.pop();
-                this._addToQueue(clonedNode, false, chain.next().endInnerNode.bind(chain.next(), clonedNode, chain));
+                this._addToQueue(this._styledTree.pop(), false, chain);
 
                 //clear any styling and rebuild tree.
                 this._clearStylingNode();
@@ -185,8 +203,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 this._rebuildContainerTree(this._getContainerTree(), true, chain);
             } else {
                 //normal end node
-                clonedNode = this._styledTree.pop();
-                this._addToQueue(clonedNode, false, chain.next().endOuterNode.bind(chain.next(), clonedNode, chain));
+                this._addToQueue(this._styledTree.pop(), false, chain);
             }
 
             //flush queue if ending content node
@@ -213,10 +230,27 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         /**
          * Adds entry to styling queue for later processing.
          */
-        _addToQueue: function(node, begin, callback){
+        _addToQueue: function(node, openingTag, chain){
+            var callback;
+
+            if(this._withinSelection){
+                if(openingTag){
+                    callback = chain.next().beginInnerNode.bind(chain.next(), node, chain);
+                } else {
+                    callback = chain.next().endInnerNode.bind(chain.next(), node, chain);
+                }
+            } else {
+                if(openingTag){
+                    callback = chain.next().beginOuterNode.bind(chain.next(), node, chain);
+                } else {
+                    callback = chain.next().endOuterNode.bind(chain.next(), node, chain);
+                }
+            }
+
             this._stylingQueue.push({
                 node: node,
-                mode: begin ? 'begin' : 'end',
+                openingTag: openingTag,
+                withinSelection: this._withinSelection,
                 callback: callback
             });
         },
@@ -233,8 +267,10 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 //get next entry
                 tempQueueEntry = this._stylingQueue.shift();
 
-                //don't process empty styling nodes.
-                if(this._keepEmptyStylingTag || !RTEExt.rte.Utils.canUnwrap(tempQueueEntry.node, this._stylingTagName)){
+                //don't process empty styling nodes that occur within the selection.
+                if(!tempQueueEntry.withinSelection
+                    || this._keepEmptyStylingTag
+                    || !RTEExt.rte.Utils.canUnwrap(tempQueueEntry.node, this._stylingTagName)){
                     //add to local queue
                     localQueue.push(tempQueueEntry);
 
@@ -245,10 +281,10 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                         while(localQueue.length){
                             localQueue.shift().callback();
                         }
-                    } else if(tempQueueEntry.mode === 'end'){
+                    } else if(!tempQueueEntry.openingTag){
                         //and entry is being closed, make sure it wasn't opened without containing content
                         beginIndex = localQueue.findIndex(function(entry){
-                            return entry.node === tempQueueEntry.node && entry.mode === 'begin';
+                            return entry.node === tempQueueEntry.node && entry.openingTag;
                         });
 
                         //if we are closing an empty node, just ignore it
@@ -275,12 +311,9 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
          * one can be created.
          */
         _closeContainer: function(chain){
-            var tempNode;
-
             //move styled tree up to first container node.
             while(this._styledTree.length && !this._isContainer(this._styledTree[this._styledTree.length - 1])){
-                tempNode = this._styledTree.pop();
-                this._addToQueue(tempNode, false, chain.next().endInnerNode.bind(chain.next(), tempNode, chain));
+                this._addToQueue(this._styledTree.pop(), false, chain);
             }
         },
 
@@ -300,7 +333,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                         this._stripStyles(tempNode);
                     }
                     this._styledTree.push(tempNode);
-                    this._addToQueue(tempNode, true, chain.next().beginInnerNode.bind(chain.next(), tempNode, chain));
+                    this._addToQueue(tempNode, true, chain);
                 }
             }
         },
@@ -316,11 +349,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             }
             this._applyStyles(this._activeStylingNode);
             this._styledTree.push(this._activeStylingNode);
-            this._addToQueue(
-                this._activeStylingNode,
-                true,
-                chain.next().beginInnerNode.bind(chain.next(), this._activeStylingNode, chain)
-            );
+            this._addToQueue(this._activeStylingNode, true, chain);
         },
 
         /**

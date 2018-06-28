@@ -85,13 +85,14 @@ The `auto` plugin provides authors a way to format rich text content quickly by 
 
 #### Inline Formatting
 The `inline` feature provides automatic inline formatting options.  The default configuration allows authors to apply
-bold, italic, and code formatting.  Additional inline formatting may be configured.
+bold, italic, code and strikethrough formatting.  Additional inline formatting may be configured.
 
 | Pattern | Formatting |
 | --- | --- |
 | `**text**` or `__text__` | bold |
 | `*text*` or `_text_` | italic |
 | ``` `text` ``` | code |
+| `~~text~~` | strikethrough |
 
 #### Block Formatting
 The `block` feature provides automatic block formatting options.  The default configuration allows authors create

@@ -4,8 +4,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 (function(CUI){
     "use strict";
 
-    var GROUP = 'auto',
-        COMMAND_NAME = 'inline';
+    var COMMAND_NAME = 'inline';
 
     RTEExt.rte.commands.AutoInlineFormatting = new Class({
         toString: 'AutoInlineFormatting',

@@ -4,13 +4,8 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 (function(CUI){
     "use strict";
 
-    var GROUP = 'colors',
-        COMMAND_NAME = 'text-highlight',
-        COMMAND_REF = GROUP + '#' + COMMAND_NAME,
-        TOOLTIP_KEYS = {
-            'title': 'plugins.' + GROUP + '.' + COMMAND_NAME + '.title',
-            'text': 'plugins.' + GROUP + '.' + COMMAND_NAME + '.text'
-        };
+    var COMMAND_NAME = 'text-highlight',
+        COMMAND_REF = RTEExt.rte.Groups.COLORS + '#' + COMMAND_NAME;
 
     RTEExt.rte.commands.TextHighlight = new Class({
         toString: 'TextHighlight',
@@ -69,7 +64,6 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
     RTEExt.rte.commands.TextHighlight.COMMAND_NAME = COMMAND_NAME;
     RTEExt.rte.commands.TextHighlight.COMMAND_REF = COMMAND_REF;
-    RTEExt.rte.commands.TextHighlight.TOOLTIP_KEYS = TOOLTIP_KEYS;
 
     //register command
     CUI.rte.commands.CommandRegistry.register(

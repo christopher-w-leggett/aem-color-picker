@@ -4,8 +4,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 (function(CUI){
     "use strict";
 
-    var GROUP = 'auto',
-        COMMAND_NAME = 'auto-block-format';
+    var COMMAND_NAME = 'auto-block-format';
 
     RTEExt.rte.commands.AutoBlockFormatting = new Class({
         toString: 'AutoBlockFormatting',
