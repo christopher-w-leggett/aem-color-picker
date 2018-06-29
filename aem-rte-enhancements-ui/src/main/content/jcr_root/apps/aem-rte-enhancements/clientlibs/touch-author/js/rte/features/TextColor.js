@@ -1,7 +1,7 @@
 RTEExt = window.RTEExt || {};
 RTEExt.rte = RTEExt.rte || {};
 RTEExt.rte.features = RTEExt.rte.features || {};
-(function(CUI){
+(function(CUI, $){
     "use strict";
 
     var NAME = 'text-color',
@@ -107,4 +107,4 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             return false;
         }
     });
-})(window.CUI);
+})(window.CUI, window.jQuery);
