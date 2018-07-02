@@ -12,9 +12,14 @@ rte/selection/pipeline/PipelineChain.js
 rte/selection/pipeline/PipelineChainFactory.js
 rte/selection/pipeline/Pipeline.js
 
-rte/ui/UIToolkit.js
+rte/proxy/ProxyFactory.js
+rte/proxy/ObjectExtensionProxyFactory.js
+
 rte/ui/dialogs/TextColor.js
 rte/ui/dialogs/TextHighlight.js
+rte/ui/ToolbarProxyFactory.js
+rte/ui/ToolbarBuilderProxyFactory.js
+rte/ui/ToolkitExtension.js
 
 rte/commands/AutoBlockFormatting.js
 rte/commands/AutoInlineFormatting.js
