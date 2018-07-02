@@ -32,9 +32,6 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         initializeUI: function(tbGenerator, options){
             var plugins = CUI.rte.plugins;
 
-            tbGenerator.registerIcon(RTEExt.rte.commands.TextHighlight.COMMAND_REF, 'textEdit');
-            tbGenerator.registerAdditionalClasses(RTEExt.rte.commands.TextHighlight.COMMAND_REF, 'rte--trigger');
-
             this.ui = tbGenerator.createElement(this.getName(), this.plugin, true, this.config.tooltip);
             tbGenerator.addElement(this.plugin.pluginId, plugins.Plugin.SORT_EDIT, this.ui, 110);
         },

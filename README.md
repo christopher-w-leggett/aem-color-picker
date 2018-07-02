@@ -73,6 +73,24 @@ The following steps are provided for a starting point and outline all configurat
      |    +-- {nt:unstructured} fullscreen
      |    |    +-- {String[]} toolbar="[...,colors#text-color,colors#text-highlight,...]"
      |    |    +-- ...
+     |    +-- {nt:unstructured} icons
+     |    |    +-- ...
+     |    |    +-- {nt:unstructured} text-color
+     |    |    |    +-- {String} command="colors#text-color"
+     |    |    |    +-- {String} icon="textColor"
+     |    |    +-- {nt:unstructured} text-highlight
+     |    |    |    +-- {String} command="colors#text-highlight"
+     |    |    |    +-- {String} icon="textEdit"
+     |    |    +-- ...
+     |    +-- {nt:unstructured} additionalClasses
+     |    |    +-- ...
+     |    |    +-- {nt:unstructured} text-color
+     |    |    |    +-- {String} command="colors#text-color"
+     |    |    |    +-- {String} classes="rte--trigger"
+     |    |    +-- {nt:unstructured} text-highlight
+     |    |    |    +-- {String} command="colors#text-highlight"
+     |    |    |    +-- {String} classes="rte--trigger"
+     |    |    +-- ...
      |    +-- ...
     ```
 1. Modify AEM AntiSamy policy to allow the `mark` tag.  This is only required if using the `text-highlight` feature 
@@ -232,14 +250,16 @@ The following steps are provided for a starting point and outline all configurat
      |    +-- {nt:unstructured} fullscreen
      |    |    +-- {String[]} toolbar="[...,format-ext#code,format-ext#strikethrough,...]"
      |    |    +-- ...
-     |    +-- ...
      |    +-- {nt:unstructured} icons
+     |    |    +-- ...
      |    |    +-- {nt:unstructured} code
      |    |    |    +-- {String} command="format-ext#code"
      |    |    |    +-- {String} icon="code"
      |    |    +-- {nt:unstructured} strikethrough
      |    |    |    +-- {String} command="format-ext#strikethrough"
      |    |    |    +-- {String} icon="textStrikethrough"
+     |    |    +-- ...
+     |    +-- ...
     ```
 
 
