@@ -4,7 +4,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
 (function(CUI){
     "use strict";
 
-    var NAME = 'inline';
+    const NAME = 'inline';
 
     //TODO: Inline links?
     RTEExt.rte.features.AutoInlineFormatting = new Class({
@@ -25,7 +25,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         notifyConfig: function(config){
-            var defaultConfig = {
+            const defaultConfig = {
                     inlineElementMapping: {
                         bold: {
                             charPattern: ['**', '__'],
@@ -44,15 +44,14 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                             tagName: 's'
                         }
                     }
-                },
-                prop;
+                };
             CUI.rte.Utils.applyDefaults(config, defaultConfig);
             this.config = config;
 
             //initialize properties
             this._activationKeys = {};
             this._formatting = [];
-            for(prop in this.config.inlineElementMapping){
+            for(let prop in this.config.inlineElementMapping){
                 if(this.config.inlineElementMapping.hasOwnProperty(prop)
                     && !this.config.inlineElementMapping[prop].disabled){
                     this.config.inlineElementMapping[prop].charPattern.forEach(function(pattern){
@@ -76,26 +75,22 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         _keyup: function(event){
-            var key = event.nativeEvent.key,
-                root = event.editContext.root,
+            const key = event.nativeEvent.key,
                 selection = CUI.rte.Selection.createProcessingSelection(event.editContext),
-                cursorNode = selection.startNode,
-                matchingFormats,
-                activatedFormat,
-                beginningFormatDef;
+                cursorNode = selection.startNode;
 
             //continue if we hit an activation key
             if(this._activationKeys[key] && cursorNode && cursorNode.nodeType === 3){
                 //find matching formats from our configuration
-                matchingFormats = this._findMatchingFormats(key);
+                const matchingFormats = this._findMatchingFormats(key);
 
                 //determine if formatting can be applied
                 if(matchingFormats && matchingFormats.length){
                     //find activated format
-                    activatedFormat = this._findActivatedFormat(cursorNode, selection.startOffset, matchingFormats);
+                    const activatedFormat = this._findActivatedFormat(cursorNode, selection.startOffset, matchingFormats);
 
                     //find the closest node/offset of the matching formats.
-                    beginningFormatDef = this._findBeginningFormatDef(
+                    const beginningFormatDef = this._findBeginningFormatDef(
                         cursorNode, selection.startOffset, matchingFormats
                     );
 
@@ -121,7 +116,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         _findMatchingFormats: function(key){
-            var matchingFormats = [];
+            const matchingFormats = [];
 
             //a matching format is any whose charPattern ends with the activation key
             this._formatting.forEach(function(format){
@@ -141,16 +136,14 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         _findBeginningFormatDef: function(textNode, offset, formats){
-            var formatDef = null,
-                startPosition,
-                positionDef;
+            let formatDef = null;
 
             //for each format, find the beginning position and if position is closer than the previous, use it
             //don't use format if the closest is right before the actual position.
             formats.forEach(function(format){
-                startPosition = this._moveBack(textNode, offset, format.charPattern.length);
+                const startPosition = this._moveBack(textNode, offset, format.charPattern.length);
                 if(startPosition){
-                    positionDef = this._findPatternStartPosition(
+                    const positionDef = this._findPatternStartPosition(
                         startPosition.textNode, startPosition.offset, format.charPattern
                     );
                     if(positionDef && positionDef.distance > 0
@@ -172,10 +165,8 @@ RTEExt.rte.features = RTEExt.rte.features || {};
          * Will move the current position back a number of characters. TODO: move to utils
          */
         _moveBack: function(textNode, offset, numCharacters){
-            var previousNode,
-                curNode = textNode,
+            let curNode = textNode,
                 curOffset = offset,
-                previousNode,
                 remainingCharacters = numCharacters;
 
             while(curNode && remainingCharacters > 0){
@@ -189,7 +180,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                     remainingCharacters -= curOffset;
                     do {
                         //move to previous sibling (which may be a parents previous sibling)
-                        previousNode = curNode.previousSibling;
+                        let previousNode = curNode.previousSibling;
                         while(!previousNode && !RTEExt.rte.Utils.isContainerNode(curNode.parentNode)){
                             //move current node up
                             curNode = curNode.parentNode;
@@ -221,13 +212,10 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         _findPatternStartPosition: function(textNode, offset, pattern){
-            var positionDef = null,
+            let positionDef = null,
                 curNode = textNode,
                 curOffset = offset,
-                previousNode,
-                aggregateTextContent = '',
-                lastIndex,
-                distance;
+                aggregateTextContent = '';
 
             //aggregate all text content of current container
             while(curNode){
@@ -239,7 +227,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
 
                 do {
                     //move to previous sibling (which may be a parents previous sibling)
-                    previousNode = curNode.previousSibling;
+                    let previousNode = curNode.previousSibling;
                     while(!previousNode && !RTEExt.rte.Utils.isContainerNode(curNode.parentNode)){
                         //move current node up
                         curNode = curNode.parentNode;
@@ -262,9 +250,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             }
 
             //look for match
-            lastIndex = aggregateTextContent.lastIndexOf(pattern);
+            const lastIndex = aggregateTextContent.lastIndexOf(pattern);
             if(lastIndex > -1){
-                distance = aggregateTextContent.length - lastIndex;
+                const distance = aggregateTextContent.length - lastIndex;
                 positionDef = this._moveBack(textNode, offset, distance);
                 positionDef.distance = distance - pattern.length;
             }
@@ -273,7 +261,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         _isPattern: function(textNode, offset, pattern){
-            var matches = false;
+            let matches = false;
 
             if(offset >= pattern.length){
                 matches = pattern === textNode.textContent.substring(

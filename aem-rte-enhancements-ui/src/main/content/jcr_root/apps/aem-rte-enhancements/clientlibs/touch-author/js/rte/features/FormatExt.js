@@ -4,7 +4,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
 (function(CUI){
     "use strict";
 
-    var NAME = 'format-ext';
+    const NAME = 'format-ext';
 
     RTEExt.rte.features.FormatExt = new Class({
         toString: 'FormatExt',
@@ -24,13 +24,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         initializeUI: function(tbGenerator, options){
-            var plugins = CUI.rte.plugins,
-                commandRef,
-                i;
+            const plugins = CUI.rte.plugins;
 
-            for(i = 0; i < this._formats.length; i++){
-                commandRef = RTEExt.rte.Groups.FORMAT_EXT + '#' + this._formats[i].name,
-
+            for(let i = 0; i < this._formats.length; i++){
                 this._formats[i].ui = tbGenerator.createElement(
                     this._formats[i].name, this.plugin, true, this._formats[i].tooltip
                 );
@@ -39,32 +35,28 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         notifyConfig: function(config){
-            var defaultConfig = {
+            const defaultConfig = {
                     code: {
                         tagName: 'code'
                     },
                     strikethrough: {
                         tagName: 's'
                     }
-                },
-                defaultFormatTooltip,
-                formatName,
-                formatTooltip,
-                tooltipKeys;
+                };
             CUI.rte.Common.removeJcrData(config);
             CUI.rte.Utils.applyDefaults(config, defaultConfig);
             this.config = config;
 
             //build formats
             this._formats = [];
-            for(formatName in this.config){
+            for(let formatName in this.config){
                 if(this.config.hasOwnProperty(formatName) && !this.config[formatName].disabled){
-                    tooltipKeys = {
+                    const tooltipKeys = {
                         'title': 'plugins.' + RTEExt.rte.Groups.FORMAT_EXT + '.' + formatName + '.title',
                         'text': 'plugins.' + RTEExt.rte.Groups.FORMAT_EXT + '.' + formatName + '.text'
                     };
 
-                    defaultFormatTooltip = {
+                    const defaultFormatTooltip = {
                         'title': CUI.rte.Utils.i18n(tooltipKeys.title),
                         'text': CUI.rte.Utils.i18n(tooltipKeys.text)
                     };
@@ -74,7 +66,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                     if(defaultFormatTooltip.text === tooltipKeys.text){
                         defaultFormatTooltip.text = formatName.substring(0, 1).toUpperCase() + formatName.substring(1);
                     }
-                    formatTooltip = this.config[formatName].tooltip || {};
+                    const formatTooltip = this.config[formatName].tooltip || {};
                     CUI.rte.Utils.applyDefaults(formatTooltip, defaultFormatTooltip);
 
                     this._formats.push({
@@ -87,21 +79,18 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         execute: function(command, value, envOptions){
-            var appliedFormat = this._formats.find(function(format){
+            const appliedFormat = this._formats.find(function(format){
                     return format.name === command;
-                }),
-                selectionDef,
-                startNodeAncestors,
-                endNodeAncestors;
+                });
 
             if(appliedFormat){
-                selectionDef = this.editorKernel.analyzeSelection(envOptions.editContext);
-                startNodeAncestors = RTEExt.rte.Utils.getAncestors(
-                    selectionDef.selection.startNode, envOptions.editContext.root
-                );
-                endNodeAncestors = RTEExt.rte.Utils.getAncestors(
-                    selectionDef.selection.endNode, envOptions.editContext.root
-                );
+                const selectionDef = this.editorKernel.analyzeSelection(envOptions.editContext),
+                    startNodeAncestors = RTEExt.rte.Utils.getAncestors(
+                        selectionDef.selection.startNode, envOptions.editContext.root
+                    ),
+                    endNodeAncestors = RTEExt.rte.Utils.getAncestors(
+                        selectionDef.selection.endNode, envOptions.editContext.root
+                    );
 
                 this.editorKernel.relayCmd(RTEExt.rte.commands.FormatExt.COMMAND_NAME, {
                     'tagName': appliedFormat.tagName,
@@ -115,7 +104,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         updateState: function(selDef){
-            var startNodeAncestors = RTEExt.rte.Utils.getAncestors(
+            const startNodeAncestors = RTEExt.rte.Utils.getAncestors(
                     selDef.selection.startNode, selDef.editContext.root
                 ),
                 endNodeAncestors = RTEExt.rte.Utils.getAncestors(

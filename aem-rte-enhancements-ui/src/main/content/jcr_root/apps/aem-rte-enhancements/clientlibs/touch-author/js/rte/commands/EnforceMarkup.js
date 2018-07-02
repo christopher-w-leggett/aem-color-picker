@@ -4,7 +4,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 (function(CUI){
     "use strict";
 
-    var COMMAND_NAME = 'markup';
+    const COMMAND_NAME = 'markup';
 
     RTEExt.rte.commands.EnforceMarkup = new Class({
         toString: 'EnforceMarkup',
@@ -16,25 +16,23 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         },
 
         getProcessingOptions: function(){
-            var cmd = CUI.rte.commands.Command;
+            const cmd = CUI.rte.commands.Command;
             return cmd.PO_BOOKMARK;
         },
 
         execute: function(execDef){
-            var root = execDef.editContext.root,
+            const root = execDef.editContext.root,
                 defaultEditBlockTag = execDef.component.htmlRules.blockHandling.defaultEditBlockType;
 
             this.enforceSubtree(root, root, execDef.value || {}, defaultEditBlockTag);
         },
 
         enforceSubtree: function(node, root, policies, defaultEditBlockTag){
-            var curChild = node.firstChild,
-                curStyle,
-                markerNode;
+            let curChild = node.firstChild;
 
             while(curChild){
                 //track a marker node so we can get the next child if our current child is stripped out.
-                markerNode = curChild.previousSibling || node;
+                const markerNode = curChild.previousSibling || node;
 
                 //enforce current child (if child is removed, null is returned)
                 curChild = this.enforce(curChild, root, policies, defaultEditBlockTag);
@@ -52,19 +50,11 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         },
 
         enforce: function(node, root, policies, defaultEditBlockTag){
-            var enforcedNode = node,
-                markerNode,
-                activePolicy,
-                stylePolicy,
-                attributePolicy,
-                attributeName,
-                attributeValues,
-                i,
-                j;
+            let enforcedNode = node;
 
             if(enforcedNode.nodeType && enforcedNode.nodeType === 1){
                 //enforce tag
-                activePolicy = this.getActivePolicy(enforcedNode, policies);
+                const activePolicy = this.getActivePolicy(enforcedNode, policies);
                 if(activePolicy.policy !== 'allow'){
                     if(enforcedNode.parentNode === root){
                         //don't put text directly under root.
@@ -77,8 +67,8 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
                 if(enforcedNode){
                     //enforce styles
-                    for(i = enforcedNode.style.length - 1; i >= 0; i--){
-                        stylePolicy = this.getStylePolicy(enforcedNode.style[i], activePolicy);
+                    for(let i = enforcedNode.style.length - 1; i >= 0; i--){
+                        const stylePolicy = this.getStylePolicy(enforcedNode.style[i], activePolicy);
                         if(stylePolicy.values && stylePolicy.values.length){
                             if(stylePolicy.policy === 'allow' && !stylePolicy.values.includes(enforcedNode.style[enforcedNode.style[i]])){
                                 enforcedNode.style.removeProperty(enforcedNode.style[i]);
@@ -91,22 +81,22 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                     }
 
                     //enforce attributes
-                    for(i = enforcedNode.attributes.length - 1; i >= 0; i--){
-                        attributeName = enforcedNode.attributes[i].nodeName;
+                    for(let i = enforcedNode.attributes.length - 1; i >= 0; i--){
+                        const attributeName = enforcedNode.attributes[i].nodeName;
                         if(attributeName !== 'style' && !attributeName.startsWith('_rte')){
-                            attributePolicy = this.getAttributePolicy(attributeName, activePolicy);
+                            const attributePolicy = this.getAttributePolicy(attributeName, activePolicy);
                             if(attributePolicy.values && attributePolicy.values.length){
-                                attributeValues = attributePolicy.split
+                                const attributeValues = attributePolicy.split
                                     ? enforcedNode.attributes[i].value.split(attributePolicy.split)
                                     : [enforcedNode.attributes[i].value]
                                 if(attributePolicy.policy === 'allow'){
-                                    for(j = attributeValues.length - 1; j >= 0; j--){
+                                    for(let j = attributeValues.length - 1; j >= 0; j--){
                                         if(!attributePolicy.values.includes(attributeValues[j])){
                                             attributeValues.splice(attributeValues.indexOf(attributeValues[j]), 1);
                                         }
                                     }
                                 } else {
-                                    for(j = attributeValues.length - 1; j >= 0; j--){
+                                    for(let j = attributeValues.length - 1; j >= 0; j--){
                                         if(attributePolicy.values.includes(attributeValues[j])){
                                             attributeValues.splice(attributeValues.indexOf(attributeValues[j]), 1);
                                         }
@@ -135,7 +125,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         },
 
         getActivePolicy: function(node, policies){
-            var tagPolicy = policies.tagPolicies[node.tagName.toLowerCase()],
+            const tagPolicy = policies.tagPolicies[node.tagName.toLowerCase()],
                 wildcardPolicy = policies.tagPolicies['+'],
                 policy = tagPolicy || wildcardPolicy || { 'policy': 'deny' };
 

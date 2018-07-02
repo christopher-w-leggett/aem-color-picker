@@ -37,7 +37,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         beginInnerNode: function(node, chain){
-            var processedNode = node;
+            let processedNode = node;
 
             //if we haven't yet processed selection start, then this is it.  Strip off beginning content if necessary.
             if(!this._processedSelectionStart){
@@ -56,13 +56,11 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
 
         endInnerNode: function(node, chain){
             //queue up next handler processing in case this is the end node, send last node from processed tree
-            var processedNode = this._processedTree.pop();
+            const processedNode = this._processedTree.pop();
             this._addToQueue(processedNode, chain.next().endInnerNode.bind(chain.next(), processedNode, chain));
         },
 
         beginOuterNode: function(node, chain){
-            var selectionEndNode;
-
             //if we processed selection start and have not yet processed selection end, then this is it.
             //strip off end content if necessary.
             if(this._processedSelectionStart && !this._processedSelectionEnd){
@@ -120,7 +118,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         _processStartNode: function(node){
-            var processedNode = node;
+            let processedNode = node;
 
             if(node.nodeType === 3 && this._beginningContent && node.textContent.startsWith(this._beginningContent)){
                 processedNode = document.createTextNode(node.textContent.substring(this._beginningContent.length));
@@ -130,14 +128,12 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         _processEndNode: function(chain){
-            var processedNode;
-
             if(this._processingQueue.length
                 && this._processingQueue[this._processingQueue.length - 1].node.nodeType === 3
                 && this._endContent
                 && this._processingQueue[this._processingQueue.length - 1].node.textContent.endsWith(this._endContent)){
                 //text nodes have start and end entries right next to each other, so we can just pop them off.
-                processedNode = this._processingQueue.pop().node;
+                let processedNode = this._processingQueue.pop().node;
                 this._processingQueue.pop();
 
                 //strip content

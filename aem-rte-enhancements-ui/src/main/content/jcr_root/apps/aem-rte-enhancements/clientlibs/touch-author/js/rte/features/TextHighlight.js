@@ -4,7 +4,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
 (function(CUI, $){
     "use strict";
 
-    var NAME = 'text-highlight',
+    const NAME = 'text-highlight',
         TOOLTIP_KEYS = {
             'title': 'plugins.' + RTEExt.rte.Groups.COLORS + '.' + NAME + '.title',
             'text': 'plugins.' + RTEExt.rte.Groups.COLORS + '.' + NAME + '.text'
@@ -30,14 +30,14 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         initializeUI: function(tbGenerator, options){
-            var plugins = CUI.rte.plugins;
+            const plugins = CUI.rte.plugins;
 
             this.ui = tbGenerator.createElement(this.getName(), this.plugin, true, this.config.tooltip);
             tbGenerator.addElement(this.plugin.pluginId, plugins.Plugin.SORT_EDIT, this.ui, 110);
         },
 
         notifyConfig: function(config){
-            var defaultConfig = {
+            const defaultConfig = {
                 'variant': 'default',
                 'autogeneratecolors': 'off',
                 'showdefaultcolors': 'on',
@@ -62,18 +62,17 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         execute: function(command, value, envOptions){
-            var plugin = this.plugin,
-                editorKernel = this.editorKernel,
-                editContext = envOptions.editContext,
-                dialogManager = editorKernel.getDialogManager(),
-                $container = CUI.rte.UIUtils.getUIContainer($(editContext.root)),
-                selectionDef = editorKernel.analyzeSelection(editContext),
-                textHighlightConfig = CUI.rte.Utils.copyObject(this.config);
+            const editorKernel = this.editorKernel,
+                dialogManager = editorKernel.getDialogManager();
 
             if(this.dialog && dialogManager.isShown(this.dialog) && dialogManager.toggleVisibility(this.dialog)){
                 dialogManager.hide(this.dialog);
             } else {
+                const editContext = envOptions.editContext,
+                    selectionDef = editorKernel.analyzeSelection(editContext);
+
                 if(!this.dialog || dialogManager.mustRecreate(this.dialog)){
+                    const textHighlightConfig = CUI.rte.Utils.copyObject(this.config);
                     textHighlightConfig.execute = function(value){
                         CUI.rte.Selection.restoreNativeSelection(editContext, this.savedNativeSelection);
                         editorKernel.relayCmd(RTEExt.rte.commands.TextHighlight.COMMAND_NAME, value);
@@ -83,7 +82,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                     };
 
                     this.dialog = new RTEExt.rte.ui.dialogs.TextHighlight();
-                    this.dialog.attach(textHighlightConfig, $container, editorKernel);
+                    this.dialog.attach(
+                        textHighlightConfig, CUI.rte.UIUtils.getUIContainer($(editContext.root)), editorKernel
+                    );
                 }
 
                 dialogManager.prepareShow(this.dialog);

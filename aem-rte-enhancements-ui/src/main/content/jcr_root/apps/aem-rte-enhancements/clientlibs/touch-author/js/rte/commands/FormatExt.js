@@ -4,7 +4,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 (function(CUI){
     "use strict";
 
-    var COMMAND_NAME = 'format-ext';
+    const COMMAND_NAME = 'format-ext';
 
     RTEExt.rte.commands.FormatExt = new Class({
         toString: 'FormatExt',
@@ -16,12 +16,12 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         },
 
         getProcessingOptions: function(){
-            var cmd = CUI.rte.commands.Command;
+            const cmd = CUI.rte.commands.Command;
             return cmd.PO_BOOKMARK | cmd.PO_SELECTION;
         },
 
         execute: function(execDef){
-            var stylingTagName = execDef.value.tagName,
+            const stylingTagName = execDef.value.tagName,
                 startNode = execDef.selection.startNode,
                 endNode = execDef.selection.endNode,
                 root = execDef.editContext.root,

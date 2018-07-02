@@ -4,7 +4,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 (function(CUI){
     "use strict";
 
-    var COMMAND_NAME = 'auto-block-format';
+    const COMMAND_NAME = 'auto-block-format';
 
     RTEExt.rte.commands.AutoBlockFormatting = new Class({
         toString: 'AutoBlockFormatting',
@@ -16,29 +16,26 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         },
 
         getProcessingOptions: function(){
-            var cmd = CUI.rte.commands.Command;
+            const cmd = CUI.rte.commands.Command;
             return cmd.PO_BOOKMARK | cmd.PO_SELECTION;
         },
 
         execute: function(execDef){
-            var root = execDef.editContext.root,
-                documentFragment = document.createDocumentFragment(),
-                writePointer = documentFragment,
-                cursorNode = execDef.selection.startNode,
-                containerNode = cursorNode.parentNode,
-                emptyPlaceholderNode,
-                i;
-
             //continue if we were provided a formatting tree
             if(execDef.value && execDef.value.tree && execDef.value.tree.length){
+                const documentFragment = document.createDocumentFragment(),
+                    cursorNode = execDef.selection.startNode;
+                let writePointer = documentFragment,
+                    containerNode = cursorNode.parentNode;
+
                 if(execDef.value.createTree){
                     //build new block tree
-                    for(i = 0; i < execDef.value.tree.length; i++){
+                    for(let i = 0; i < execDef.value.tree.length; i++){
                         writePointer = writePointer.appendChild(document.createElement(execDef.value.tree[i]));
                     }
 
                     //get temporary node for cursor selection if needed
-                    emptyPlaceholderNode = CUI.rte.DomProcessor.createEmptyLinePlaceholder(execDef.editContext, false);
+                    const emptyPlaceholderNode = CUI.rte.DomProcessor.createEmptyLinePlaceholder(execDef.editContext, false);
                     if(emptyPlaceholderNode){
                         writePointer = writePointer.appendChild(emptyPlaceholderNode);
                     }
@@ -53,7 +50,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                     execDef.bookmark.startPos -= containerNode.innerText.length;
                 } else {
                     //find top most container node
-                    while(containerNode.parentNode !== root){
+                    while(containerNode.parentNode !== execDef.editContext.root){
                         containerNode = containerNode.parentNode;
                     }
 
@@ -63,7 +60,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                     ));
 
                     //get temporary node for cursor selection if needed
-                    emptyPlaceholderNode = CUI.rte.DomProcessor.createEmptyLinePlaceholder(execDef.editContext, false);
+                    const emptyPlaceholderNode = CUI.rte.DomProcessor.createEmptyLinePlaceholder(execDef.editContext, false);
                     if(emptyPlaceholderNode){
                         writePointer = writePointer.appendChild(emptyPlaceholderNode);
                     }

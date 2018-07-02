@@ -46,7 +46,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         beginInnerNode: function(node, chain){
-            var clonedNode = RTEExt.rte.Utils.cloneNode(node),
+            const clonedNode = RTEExt.rte.Utils.cloneNode(node),
                 isContainerNode = this._isContainer(node),
                 containerTree = this._getContainerTree(),
                 currentStyling = this._getAggregateStyling(clonedNode, containerTree);
@@ -90,9 +90,6 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         endInnerNode: function(node, chain){
-            var containerTree,
-                currentStyling;
-
             //mark that we are within the selection if not already marked
             this._withinSelection = true;
 
@@ -109,8 +106,8 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 this._addToQueue(this._styledTree.pop(), false, chain);
 
                 //get container tree and styling for rebuild.
-                containerTree = this._getContainerTree(),
-                currentStyling = this._getAggregateStyling(null, containerTree);
+                const containerTree = this._getContainerTree(),
+                    currentStyling = this._getAggregateStyling(null, containerTree);
 
                 //create new styling node and recreate tree.
                 this._createStylingNode(currentStyling, chain);
@@ -121,8 +118,8 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 this._closeContainer(chain);
 
                 //get container tree and styling for rebuild.
-                containerTree = this._getContainerTree(),
-                currentStyling = this._getAggregateStyling(null, containerTree);
+                const containerTree = this._getContainerTree(),
+                    currentStyling = this._getAggregateStyling(null, containerTree);
 
                 //create new styling node and recreate tree.
                 this._createStylingNode(currentStyling, chain);
@@ -140,7 +137,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         beginOuterNode: function(node, chain){
-            var clonedNode = RTEExt.rte.Utils.cloneNode(node),
+            const clonedNode = RTEExt.rte.Utils.cloneNode(node),
                 isContainerNode = this._isContainer(node),
                 containerTree = this._getContainerTree();
 
@@ -231,7 +228,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
          * Adds entry to styling queue for later processing.
          */
         _addToQueue: function(node, openingTag, chain){
-            var callback;
+            let callback;
 
             if(this._withinSelection){
                 if(openingTag){
@@ -259,13 +256,11 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
          * flushes styling queue, will skip entries if determined that they are not essential or redundant empty nodes.
          */
         _flushQueue: function(){
-            var tempQueueEntry,
-                localQueue = [],
-                beginIndex;
+            const localQueue = [];
 
             while(this._stylingQueue.length){
                 //get next entry
-                tempQueueEntry = this._stylingQueue.shift();
+                const tempQueueEntry = this._stylingQueue.shift();
 
                 //don't process empty styling nodes that occur within the selection.
                 if(!tempQueueEntry.withinSelection
@@ -282,8 +277,8 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                             localQueue.shift().callback();
                         }
                     } else if(!tempQueueEntry.openingTag){
-                        //and entry is being closed, make sure it wasn't opened without containing content
-                        beginIndex = localQueue.findIndex(function(entry){
+                        //an entry is being closed, make sure it wasn't opened without containing content
+                        const beginIndex = localQueue.findIndex(function(entry){
                             return entry.node === tempQueueEntry.node && entry.openingTag;
                         });
 
@@ -322,12 +317,11 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
          * nodes when a new styling container is being created or styling is finished.
          */
         _rebuildContainerTree: function(tree, includeStyling, chain){
-            var containerTree = tree.slice(),
-                tempNode;
+            const containerTree = tree.slice();
 
             //now recreate container tree, stripping styles and avoiding nested styling tags.
             while(containerTree.length){
-                tempNode = containerTree.shift();
+                const tempNode = containerTree.shift();
                 if(!this._isContainer(tempNode) && (includeStyling || !this._isStylingNode(tempNode))){
                     if(!includeStyling){
                         this._stripStyles(tempNode);
@@ -365,11 +359,10 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
          * styles are applied.
          */
         _applyStyles: function(node, styles){
-            var activeStyles = styles || this._styles,
-                curStyle;
+            const activeStyles = styles || this._styles;
 
             if(node && node.style){
-                for(curStyle in activeStyles){
+                for(let curStyle in activeStyles){
                     if(activeStyles.hasOwnProperty(curStyle)){
                         node.style[curStyle] = activeStyles[curStyle];
                     }
@@ -381,10 +374,8 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
          * Removes styles from a node.
          */
         _stripStyles: function(node){
-            var curStyle;
-
             if(node && node.style){
-                for(curStyle in this._styles){
+                for(let curStyle in this._styles){
                     if(this._styles.hasOwnProperty(curStyle)){
                         node.style[curStyle] = '';
                     }
@@ -398,11 +389,10 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
          */
         _isStylingNode: function(node){
             //a styling node shares the same styling tag name
-            var stylingNode = node.tagName && node.tagName.toLowerCase() === this._stylingTagName,
-                i;
+            let stylingNode = node.tagName && node.tagName.toLowerCase() === this._stylingTagName;
 
             //and doesn't contain an _rte attribute
-            for(i = 0; stylingNode && i < node.attributes.length; i++){
+            for(let i = 0; stylingNode && i < node.attributes.length; i++){
                 stylingNode = !node.attributes[i].name.startsWith('_rte');
             }
 
@@ -414,21 +404,19 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
          * styling nodes from the original tree.
          */
         _getAggregateStyling: function(node, tree){
-            var styles = {},
-                i,
-                j;
+            const styles = {};
 
             //get styles from active node
             if(node && this._isStylingNode(node)){
-                for(i = 0; i < node.style.length; i++){
+                for(let i = 0; i < node.style.length; i++){
                     styles[node.style[i]] = node.style[node.style[i]];
                 }
             }
 
             //aggregate styles
-            for(i = tree.length - 1; i >= 0; i--){
+            for(let i = tree.length - 1; i >= 0; i--){
                 if(this._isStylingNode(tree[i])){
-                    for(j = 0; j < tree[i].style.length; j++){
+                    for(let j = 0; j < tree[i].style.length; j++){
                         if(!styles[tree[i].style[j]]){
                             styles[tree[i].style[j]] = tree[i].style[tree[i].style[j]];
                         }
@@ -443,11 +431,10 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
          * Gets the localized tree of the current container.
          */
         _getContainerTree: function(){
-            var containerTree = [],
-                i;
+            const containerTree = [];
 
             //determine container hierarchy.
-            i = this._originalTree.length - 1;
+            let i = this._originalTree.length - 1;
             while(i >= 0
                 && !RTEExt.rte.Utils.isContainerNode(this._originalTree[i])
                 && !RTEExt.rte.Utils.isIgnoredNode(this._originalTree[i])){

@@ -30,8 +30,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         run: function(){
-            var handlers = this._transformers.slice(),
-                pipelineChain;
+            const handlers = this._transformers.slice();
 
             //only run if we have generator and serializer
             if(this._generator && this._serializer){
@@ -39,7 +38,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 handlers.push(this._serializer);
 
                 //create pipeline chain
-                pipelineChain = this._pipelineChainFactory.create(handlers);
+                const pipelineChain = this._pipelineChainFactory.create(handlers);
 
                 //call generator with chain
                 this._generator.generate(pipelineChain);

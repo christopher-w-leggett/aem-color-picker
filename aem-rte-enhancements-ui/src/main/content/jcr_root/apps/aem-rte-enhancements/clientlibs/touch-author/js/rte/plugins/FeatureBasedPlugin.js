@@ -39,7 +39,7 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
         },
 
         notifyPluginConfig: function(pluginConfig){
-            var config = pluginConfig || {},
+            const config = pluginConfig || {},
                 defaultConfig = {
                     'features': '*'
                 };
@@ -54,7 +54,7 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
         },
 
         execute: function(pluginCommand, value, envOptions){
-            var feature = this.features.find(function(feature){
+            const feature = this.features.find(function(feature){
                 return feature.getCommands().includes(pluginCommand);
             }, this);
 
@@ -72,7 +72,7 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
         },
 
         isHeadless: function(command, value){
-            var feature = this.features.find(function(feature){
+            const feature = this.features.find(function(feature){
                 return feature.getCommands().includes(command);
             }, this);
 

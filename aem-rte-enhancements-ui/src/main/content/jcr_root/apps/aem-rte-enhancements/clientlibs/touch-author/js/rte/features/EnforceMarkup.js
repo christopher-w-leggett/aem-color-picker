@@ -4,7 +4,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
 (function(CUI){
     "use strict";
 
-    var NAME = 'markup';
+    const NAME = 'markup';
 
     RTEExt.rte.features.EnforceMarkup = new Class({
         toString: 'EnforceMarkup',
@@ -60,7 +60,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             }
             TODO: Need to finish reviewing table plugin which is broken in 6.4.  Need to see if it works in 6.3
             */
-            var defaultConfig = {
+            const defaultConfig = {
                 'tagPolicies': {
                     'p': {
                         'policy': 'allow',

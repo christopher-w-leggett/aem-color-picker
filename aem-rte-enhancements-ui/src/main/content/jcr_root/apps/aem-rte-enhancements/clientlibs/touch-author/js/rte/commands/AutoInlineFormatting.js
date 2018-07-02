@@ -4,7 +4,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 (function(CUI){
     "use strict";
 
-    var COMMAND_NAME = 'inline';
+    const COMMAND_NAME = 'inline';
 
     RTEExt.rte.commands.AutoInlineFormatting = new Class({
         toString: 'AutoInlineFormatting',
@@ -16,12 +16,12 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         },
 
         getProcessingOptions: function(){
-            var cmd = CUI.rte.commands.Command;
+            const cmd = CUI.rte.commands.Command;
             return cmd.PO_BOOKMARK;
         },
 
         execute: function(execDef){
-            var stylingTagName = execDef.value.format.tagName,
+            const stylingTagName = execDef.value.format.tagName,
                 startNode = execDef.value.startNode,
                 endNode = execDef.value.endNode,
                 root = execDef.editContext.root,
