@@ -31,8 +31,6 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             for(i = 0; i < this._formats.length; i++){
                 commandRef = RTEExt.rte.Groups.FORMAT_EXT + '#' + this._formats[i].name,
 
-                tbGenerator.registerIcon(commandRef, this._formats[i].icon);
-
                 this._formats[i].ui = tbGenerator.createElement(
                     this._formats[i].name, this.plugin, true, this._formats[i].tooltip
                 );
@@ -43,18 +41,17 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         notifyConfig: function(config){
             var defaultConfig = {
                     code: {
-                        tagName: 'code',
-                        icon: 'code'
+                        tagName: 'code'
                     },
                     strikethrough: {
-                        tagName: 's',
-                        icon: 'textStrikethrough'
+                        tagName: 's'
                     }
                 },
                 defaultFormatTooltip,
                 formatName,
                 formatTooltip,
                 tooltipKeys;
+            CUI.rte.Common.removeJcrData(config);
             CUI.rte.Utils.applyDefaults(config, defaultConfig);
             this.config = config;
 
@@ -83,7 +80,6 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                     this._formats.push({
                         'name': formatName,
                         'tagName': this.config[formatName].tagName,
-                        'icon': this.config[formatName].icon,
                         'tooltip': formatTooltip
                     });
                 }
