@@ -162,7 +162,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         /**
-         * Will move the current position back a number of characters. TODO: move to utils
+         * Will move the current position back a number of characters.
          */
         _moveBack: function(textNode, offset, numCharacters){
             let curNode = textNode,
