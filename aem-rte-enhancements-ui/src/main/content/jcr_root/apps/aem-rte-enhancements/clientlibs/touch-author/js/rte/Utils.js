@@ -1,6 +1,5 @@
 RTEExt = window.RTEExt || {};
 RTEExt.rte = RTEExt.rte || {};
-//TODO: Update so document. calls use the document from the EditContext.
 RTEExt.rte.Utils = (function(CUI){
     "use strict";
 
@@ -191,7 +190,7 @@ RTEExt.rte.Utils = (function(CUI){
     function convertTagName(node, tagName){
         if(node.tagName && tagName && node.tagName.toLowerCase() !== tagName){
             //convert tag
-            const newNode = document.createElement(tagName);
+            const newNode = node.ownerDocument.createElement(tagName);
             for(let i = 0; i < node.attributes.length; i++){
                 newNode.setAttribute(node.attributes[i].name, node.attributes[i].value);
             }
@@ -214,12 +213,12 @@ RTEExt.rte.Utils = (function(CUI){
         let newNode = null;
 
         if(node.nodeType === 1){
-            newNode = document.createElement(node.tagName);
+            newNode = node.ownerDocument.createElement(node.tagName);
             for(let i = 0; i < node.attributes.length; i++){
                 newNode.setAttribute(node.attributes[i].name, node.attributes[i].value);
             }
         } else if(node.nodeType === 3){
-            newNode = document.createTextNode(node.textContent);
+            newNode = node.ownerDocument.createTextNode(node.textContent);
         }
 
         return newNode;
@@ -267,19 +266,19 @@ RTEExt.rte.Utils = (function(CUI){
 
             if(normalizedStartOffset > 0){
                 //we need to do a beginning split up to start offset.
-                splitNodes.beginning = document.createTextNode(
+                splitNodes.beginning = textNode.ownerDocument.createTextNode(
                     textNode.textContent.substring(0, normalizedStartOffset)
                 );
             }
             if(normalizedEndOffset > normalizedStartOffset){
                 //we need to do a middle split from start offset to end offset
-                splitNodes.middle = document.createTextNode(
+                splitNodes.middle = textNode.ownerDocument.createTextNode(
                     textNode.textContent.substring(normalizedStartOffset, normalizedEndOffset)
                 );
             }
             if(normalizedEndOffset < textNode.textContent.length){
                 //we need to  do an end split from end offset to remaining text
-                splitNodes.end = document.createTextNode(
+                splitNodes.end = textNode.ownerDocument.createTextNode(
                     textNode.textContent.substring(normalizedEndOffset, textNode.textContent.length)
                 );
             }

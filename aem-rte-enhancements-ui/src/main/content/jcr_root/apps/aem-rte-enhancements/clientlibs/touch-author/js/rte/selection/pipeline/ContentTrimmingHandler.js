@@ -121,7 +121,9 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
             let processedNode = node;
 
             if(node.nodeType === 3 && this._beginningContent && node.textContent.startsWith(this._beginningContent)){
-                processedNode = document.createTextNode(node.textContent.substring(this._beginningContent.length));
+                processedNode = node.ownerDocument.createTextNode(
+                    node.textContent.substring(this._beginningContent.length)
+                );
             }
 
             return processedNode;
@@ -137,7 +139,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 this._processingQueue.pop();
 
                 //strip content
-                processedNode = document.createTextNode(
+                processedNode = processedNode.ownerDocument.createTextNode(
                     processedNode.textContent.substring(
                         0, processedNode.textContent.length - this._endContent.length
                     )

@@ -23,7 +23,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         construct: function(startNode, startOffset, endNode, endOffset, root){
             if(root){
                 //create internal document fragment to hold copied hierarchy
-                this._root = document.createDocumentFragment();
+                this._root = root.ownerDocument.createDocumentFragment();
 
                 //set initial pointers
                 let readPointer = root.firstChild;

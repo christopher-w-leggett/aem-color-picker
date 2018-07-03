@@ -66,7 +66,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                 this._withinSelection = true;
 
                 //create styling node and rebuild container tree before tracking new node
-                this._createStylingNode(currentStyling, chain);
+                this._createStylingNode(node.ownerDocument, currentStyling, chain);
                 this._rebuildContainerTree(containerTree, false, chain);
             }
 
@@ -84,7 +84,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
 
             if(isContainerNode){
                 //create styling node within the container and rebuild tree.
-                this._createStylingNode(currentStyling, chain);
+                this._createStylingNode(node.ownerDocument, currentStyling, chain);
                 this._rebuildContainerTree(containerTree, false, chain);
             }
         },
@@ -110,7 +110,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                     currentStyling = this._getAggregateStyling(null, containerTree);
 
                 //create new styling node and recreate tree.
-                this._createStylingNode(currentStyling, chain);
+                this._createStylingNode(node.ownerDocument, currentStyling, chain);
                 this._rebuildContainerTree(containerTree, false, chain);
             } else if(this._styledTree[this._styledTree.length - 1] === this._activeStylingNode
                 || this._isStylingNode(node)){
@@ -122,7 +122,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                     currentStyling = this._getAggregateStyling(null, containerTree);
 
                 //create new styling node and recreate tree.
-                this._createStylingNode(currentStyling, chain);
+                this._createStylingNode(node.ownerDocument, currentStyling, chain);
                 this._rebuildContainerTree(containerTree, false, chain);
             } else {
                 //normal end node
@@ -335,7 +335,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         /**
          * Creates a new styling node.
          */
-        _createStylingNode: function(additionalStyles, chain){
+        _createStylingNode: function(doc, additionalStyles, chain){
             //create styling node
             this._activeStylingNode = document.createElement(this._stylingTagName);
             if(additionalStyles){

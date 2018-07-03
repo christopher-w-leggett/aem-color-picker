@@ -23,7 +23,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         execute: function(execDef){
             //continue if we were provided a formatting tree
             if(execDef.value && execDef.value.tree && execDef.value.tree.length){
-                const documentFragment = document.createDocumentFragment(),
+                const documentFragment = execDef.editContext.doc.createDocumentFragment(),
                     cursorNode = execDef.selection.startNode;
                 let writePointer = documentFragment,
                     containerNode = cursorNode.parentNode;
@@ -31,7 +31,9 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                 if(execDef.value.createTree){
                     //build new block tree
                     for(let i = 0; i < execDef.value.tree.length; i++){
-                        writePointer = writePointer.appendChild(document.createElement(execDef.value.tree[i]));
+                        writePointer = writePointer.appendChild(
+                            execDef.editContext.doc.createElement(execDef.value.tree[i])
+                        );
                     }
 
                     //get temporary node for cursor selection if needed
@@ -55,7 +57,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                     }
 
                     //create new paragraph container
-                    writePointer = writePointer.appendChild(document.createElement(
+                    writePointer = writePointer.appendChild(execDef.editContext.doc.createElement(
                         execDef.component.htmlRules.blockHandling.defaultEditBlockType
                     ));
 

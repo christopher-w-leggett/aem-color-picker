@@ -27,7 +27,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         startSelection: function(chain){
-            this._documentFragment = document.createDocumentFragment();
+            this._documentFragment = this._root.ownerDocument.createDocumentFragment();
             this._writePointer = this._documentFragment;
         },
 
