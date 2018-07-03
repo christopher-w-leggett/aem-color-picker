@@ -4,7 +4,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
 (function(CUI){
     "use strict";
 
-    var NAME = 'block';
+    const NAME = 'block';
 
     RTEExt.rte.features.AutoBlockFormatting = new Class({
         toString: 'AutoBlockFormatting',
@@ -23,7 +23,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
 
         notifyConfig: function(config){
             //set config
-            var defaultConfig = {
+            const defaultConfig = {
                 blockElementMapping: {
                     unorderedList: {
                         charPattern: ['*', '-'],
@@ -78,24 +78,22 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         _keyup: function(event){
-            var key = event.nativeEvent.key,
+            const key = event.nativeEvent.key,
                 root = event.editContext.root,
                 selection = CUI.rte.Selection.createProcessingSelection(event.editContext),
-                cursorNode = selection.startNode,
-                elementMappingName,
-                elementMapping;
+                cursorNode = selection.startNode;
 
             //see if we are applying formatting
             if(this._activationKey === key && this._canCreateBlockFormatting(cursorNode, root)){
                 //find element mapping from our configuration
-                elementMappingName = Object.keys(this.config.blockElementMapping).find(function(prop){
-                    return this.config.blockElementMapping.hasOwnProperty(prop)
-                        && !this.config.blockElementMapping[prop].disabled
-                        && this.config.blockElementMapping[prop].charPattern.includes(
-                            cursorNode.textContent.substring(0, cursorNode.textContent.length - 1)
-                        );
-                }.bind(this));
-                elementMapping = elementMappingName ? this.config.blockElementMapping[elementMappingName] : null;
+                const elementMappingName = Object.keys(this.config.blockElementMapping).find(function(prop){
+                        return this.config.blockElementMapping.hasOwnProperty(prop)
+                            && !this.config.blockElementMapping[prop].disabled
+                            && this.config.blockElementMapping[prop].charPattern.includes(
+                                cursorNode.textContent.substring(0, cursorNode.textContent.length - 1)
+                            );
+                    }.bind(this)),
+                    elementMapping = elementMappingName ? this.config.blockElementMapping[elementMappingName] : null;
 
                 //modify top level block if we found a mapping
                 if(elementMapping){
@@ -107,26 +105,25 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             } else if('Enter' === key && this._canRemoveBlockFormatting(cursorNode, root)){
                 //see if we should remove current formatting
                 //find element mapping from our configuration
-                elementMappingName = Object.keys(this.config.blockElementMapping).find(function(prop){
-                    var match = true,
-                        curNode = cursorNode.parentNode,
-                        i;
+                const elementMappingName = Object.keys(this.config.blockElementMapping).find(function(prop){
+                        let match = true;
 
-                    if(this.config.blockElementMapping.hasOwnProperty(prop)
-                        && !this.config.blockElementMapping[prop].disabled){
-                        for(i = this.config.blockElementMapping[prop].nodeTree.length - 1; match && i >= 0; i--){
-                            match = match
-                                && this.config.blockElementMapping[prop].nodeTree[i] === curNode.tagName.toLowerCase();
-                            curNode = curNode.parentNode;
+                        if(this.config.blockElementMapping.hasOwnProperty(prop)
+                            && !this.config.blockElementMapping[prop].disabled){
+                            let curNode = cursorNode.parentNode;
+                            for(let i = this.config.blockElementMapping[prop].nodeTree.length - 1; match && i >= 0; i--){
+                                match = match
+                                    && this.config.blockElementMapping[prop].nodeTree[i] === curNode.tagName.toLowerCase();
+                                curNode = curNode.parentNode;
+                            }
+                            match = match && curNode === root;
+                        } else {
+                            match = false;
                         }
-                        match = match && curNode === root;
-                    } else {
-                        match = false;
-                    }
 
-                    return match;
-                }.bind(this));
-                elementMapping = elementMappingName ? this.config.blockElementMapping[elementMappingName] : null;
+                        return match;
+                    }.bind(this)),
+                    elementMapping = elementMappingName ? this.config.blockElementMapping[elementMappingName] : null;
 
                 //modify top level block if we found a mapping
                 if(elementMapping){
@@ -139,7 +136,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         _canCreateBlockFormatting: function(node, root){
-            var parentNode = node.parentNode,
+            const parentNode = node.parentNode,
                 defaultEditBlockTag = this.editorKernel.getHtmlRules().blockHandling.defaultEditBlockType;
 
             return node.nodeType === 3
@@ -151,9 +148,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
 
         _canRemoveBlockFormatting: function(node, root){
             //node is empty text node, has no siblings and intermediate parent nodes don't have siblings
-            var curNode = node,
-                removable = (curNode.nodeType === 3 && curNode.textContent === '') || this._isPlaceholderBr(curNode),
-                defaultEditBlockTag = this.editorKernel.getHtmlRules().blockHandling.defaultEditBlockType;
+            const defaultEditBlockTag = this.editorKernel.getHtmlRules().blockHandling.defaultEditBlockType;
+            let curNode = node,
+                removable = (curNode.nodeType === 3 && curNode.textContent === '') || this._isPlaceholderBr(curNode);
 
             //check no siblings up to top level block node
             while(removable && curNode.parentNode !== root){

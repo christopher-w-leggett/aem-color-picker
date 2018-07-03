@@ -4,7 +4,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
 (function(CUI, $){
     "use strict";
 
-    var NAME = 'text-color',
+    const NAME = 'text-color',
         TOOLTIP_KEYS = {
             'title': 'plugins.' + RTEExt.rte.Groups.COLORS + '.' + NAME + '.title',
             'text': 'plugins.' + RTEExt.rte.Groups.COLORS + '.' + NAME + '.text'
@@ -30,17 +30,14 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         initializeUI: function(tbGenerator, options){
-            var plugins = CUI.rte.plugins;
-
-            tbGenerator.registerIcon(RTEExt.rte.commands.TextColor.COMMAND_REF, 'textColor');
-            tbGenerator.registerAdditionalClasses(RTEExt.rte.commands.TextColor.COMMAND_REF, 'rte--trigger');
+            const plugins = CUI.rte.plugins;
 
             this.ui = tbGenerator.createElement(this.getName(), this.plugin, true, this.config.tooltip);
             tbGenerator.addElement(this.plugin.pluginId, plugins.Plugin.SORT_EDIT, this.ui, 100);
         },
 
         notifyConfig: function(config){
-            var defaultConfig = {
+            const defaultConfig = {
                 'variant': 'default',
                 'autogeneratecolors': 'off',
                 'showdefaultcolors': 'on',
@@ -65,18 +62,17 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         },
 
         execute: function(command, value, envOptions){
-            var plugin = this.plugin,
-                editorKernel = this.editorKernel,
-                editContext = envOptions.editContext,
-                dialogManager = editorKernel.getDialogManager(),
-                $container = CUI.rte.UIUtils.getUIContainer($(editContext.root)),
-                selectionDef = editorKernel.analyzeSelection(editContext),
-                textColorConfig = CUI.rte.Utils.copyObject(this.config);
+            const editorKernel = this.editorKernel,
+                dialogManager = editorKernel.getDialogManager();
 
             if(this.dialog && dialogManager.isShown(this.dialog) && dialogManager.toggleVisibility(this.dialog)){
                 dialogManager.hide(this.dialog);
             } else {
+                const editContext = envOptions.editContext,
+                    selectionDef = editorKernel.analyzeSelection(editContext);
+
                 if(!this.dialog || dialogManager.mustRecreate(this.dialog)){
+                    const textColorConfig = CUI.rte.Utils.copyObject(this.config);
                     textColorConfig.execute = function(value){
                         CUI.rte.Selection.restoreNativeSelection(editContext, this.savedNativeSelection);
                         editorKernel.relayCmd(RTEExt.rte.commands.TextColor.COMMAND_NAME, value);
@@ -86,7 +82,9 @@ RTEExt.rte.features = RTEExt.rte.features || {};
                     };
 
                     this.dialog = new RTEExt.rte.ui.dialogs.TextColor();
-                    this.dialog.attach(textColorConfig, $container, editorKernel);
+                    this.dialog.attach(
+                        textColorConfig, CUI.rte.UIUtils.getUIContainer($(editContext.root)), editorKernel
+                    );
                 }
 
                 dialogManager.prepareShow(this.dialog);

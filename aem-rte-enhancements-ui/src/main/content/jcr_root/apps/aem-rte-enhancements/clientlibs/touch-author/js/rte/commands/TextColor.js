@@ -4,7 +4,7 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 (function(CUI){
     "use strict";
 
-    var COMMAND_NAME = 'text-color',
+    const COMMAND_NAME = 'text-color',
         COMMAND_REF = RTEExt.rte.Groups.COLORS + '#' + COMMAND_NAME;
 
     RTEExt.rte.commands.TextColor = new Class({
@@ -17,12 +17,12 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
         },
 
         getProcessingOptions: function(){
-            var cmd = CUI.rte.commands.Command;
+            const cmd = CUI.rte.commands.Command;
             return cmd.PO_BOOKMARK | cmd.PO_SELECTION;
         },
 
         execute: function(execDef){
-            var stylingTagName = 'span',
+            const stylingTagName = 'span',
                 styles = {'color': execDef.value},
                 startNode = execDef.selection.startNode,
                 endNode = execDef.selection.endNode,

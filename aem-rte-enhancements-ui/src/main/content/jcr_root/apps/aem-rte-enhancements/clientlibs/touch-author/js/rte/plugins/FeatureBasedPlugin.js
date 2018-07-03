@@ -7,8 +7,6 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
     /*
         TODO: Feature ideas:
         font#size (.coral3-Icon--textSize or .coral3-Icon--textDecrease or .coral3-Icon--textIncrease), font#family (??),
-
-        Choosing tag for bold (strong), italic (em).  For ADA. (Maybe post processor for tag conversion b->strong i->em) <-- AEM already has htmlRules/docType/typeConfig@useSemanticMarkup=true config to handle this.
     */
     RTEExt.rte.plugins.FeatureBasedPlugin = new Class({
         toString: 'FeatureBasedPlugin',
@@ -41,7 +39,7 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
         },
 
         notifyPluginConfig: function(pluginConfig){
-            var config = pluginConfig || {},
+            const config = pluginConfig || {},
                 defaultConfig = {
                     'features': '*'
                 };
@@ -56,7 +54,7 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
         },
 
         execute: function(pluginCommand, value, envOptions){
-            var feature = this.features.find(function(feature){
+            const feature = this.features.find(function(feature){
                 return feature.getCommands().includes(pluginCommand);
             }, this);
 
@@ -74,7 +72,7 @@ RTEExt.rte.plugins = RTEExt.rte.plugins || {};
         },
 
         isHeadless: function(command, value){
-            var feature = this.features.find(function(feature){
+            const feature = this.features.find(function(feature){
                 return feature.getCommands().includes(command);
             }, this);
 

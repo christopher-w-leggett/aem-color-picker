@@ -12,8 +12,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         create: function(handlers){
-            var chainFactory = this,
-                handlersCopy = handlers.slice(),
+            const handlersCopy = handlers.slice(),
                 nextHandler = handlersCopy.length ? handlersCopy.shift() : null,
                 nextChain = handlers.length ? this.create(handlersCopy) : null;
 

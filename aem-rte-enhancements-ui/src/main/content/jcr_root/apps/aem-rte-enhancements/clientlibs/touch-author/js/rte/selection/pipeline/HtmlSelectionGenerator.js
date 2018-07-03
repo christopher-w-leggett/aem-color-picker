@@ -21,22 +21,18 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         _endOffset: null,
 
         construct: function(startNode, startOffset, endNode, endOffset, root){
-            var readPointer,
-                writePointer,
-                clonedNode;
-
             if(root){
                 //create internal document fragment to hold copied hierarchy
-                this._root = document.createDocumentFragment();
+                this._root = root.ownerDocument.createDocumentFragment();
 
                 //set initial pointers
-                readPointer = root.firstChild;
-                writePointer = this._root;
+                let readPointer = root.firstChild;
+                let writePointer = this._root;
 
                 //copy hierarchy
                 while(readPointer){
                     //clone node and append clone to our copied hierarchy
-                    clonedNode = RTEExt.rte.Utils.cloneNode(readPointer);
+                    const clonedNode = RTEExt.rte.Utils.cloneNode(readPointer);
                     writePointer.appendChild(clonedNode);
 
                     //set start/end nodes if applicable
@@ -81,25 +77,21 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
         },
 
         generate: function(chain){
-            var readPointer,
-                clonedNode,
-                tempNode,
-                readTree = [],
-                foundStartNode = false,
-                foundEndNode = false,
-                splitTextNodes,
-                handler = chain.next();
-
             if(this._startNode && this._endNode){
+                const handler = chain.next();
+
                 //indicate start selection
                 handler.startSelection(chain);
 
-                //set initial pointer
-                readPointer = this._root.firstChild;
+                //set initial values
+                const readTree = [];
+                let readPointer = this._root.firstChild,
+                    foundStartNode = false,
+                    foundEndNode = false;
 
                 //iterate across hierarchy
                 while(readPointer){
-                    clonedNode = RTEExt.rte.Utils.cloneNode(readPointer);
+                    const clonedNode = RTEExt.rte.Utils.cloneNode(readPointer);
 
                     //add to read tree
                     readTree.push(clonedNode);
@@ -116,6 +108,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                         readTree.push(null);
 
                         //split node appropriately
+                        let splitTextNodes = null;
                         if(readPointer.nodeType === 3){
                             if(foundEndNode){
                                 //start/end are the same, so we need to split three ways.
@@ -125,8 +118,6 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                             } else {
                                 splitTextNodes = RTEExt.rte.Utils.splitTextNode(readPointer, this._startOffset, null);
                             }
-                        } else {
-                            splitTextNodes = null;
                         }
 
                         //if we have a beginning portion of our start node, send outer node events
@@ -163,10 +154,9 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                         readTree.push(null);
 
                         //split end node appropriately
+                        let splitTextNodes = null;
                         if(readPointer.nodeType === 3){
                             splitTextNodes = RTEExt.rte.Utils.splitTextNode(readPointer, null, this._endOffset);
-                        } else {
-                            splitTextNodes = null;
                         }
 
                         //send inner node events
@@ -196,7 +186,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                         readPointer = readPointer.firstChild;
                     } else if(readPointer.nextSibling){
                         //we are leaving node, send appropriate event to handler
-                        tempNode = readTree.pop();
+                        const tempNode = readTree.pop();
                         if(tempNode){
                             if(foundStartNode && !foundEndNode){
                                 handler.endInnerNode(tempNode, chain);
@@ -211,7 +201,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                         //when moving up a tree, readPointer moves to first parents next sibling.
                         while(!readPointer.nextSibling && readPointer !== this._root){
                             //send appropriate event to handler
-                            tempNode = readTree.pop();
+                            const tempNode = readTree.pop();
                             if(tempNode){
                                 if(foundStartNode && !foundEndNode){
                                     handler.endInnerNode(tempNode, chain);
@@ -230,7 +220,7 @@ RTEExt.rte.selection.pipeline = RTEExt.rte.selection.pipeline || {};
                             readPointer = null;
                         } else {
                             //send appropriate event to handler
-                            tempNode = readTree.pop();
+                            const tempNode = readTree.pop();
                             if(tempNode){
                                 if(foundStartNode && !foundEndNode){
                                     handler.endInnerNode(tempNode, chain);

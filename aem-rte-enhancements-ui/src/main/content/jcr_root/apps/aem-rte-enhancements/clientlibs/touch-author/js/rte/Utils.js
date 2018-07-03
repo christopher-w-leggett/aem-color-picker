@@ -1,10 +1,9 @@
 RTEExt = window.RTEExt || {};
 RTEExt.rte = RTEExt.rte || {};
-//TODO: Update so document. calls use the document from the EditContext.
 RTEExt.rte.Utils = (function(CUI){
     "use strict";
 
-    var containerTags = [
+    const containerTags = Object.freeze([
             'p',
             'div',
             'h1',
@@ -21,15 +20,15 @@ RTEExt.rte.Utils = (function(CUI){
             'address',
             'th',
             'td'
-        ],
+        ]),
 
-        stylingContainerTags = [
+        stylingContainerTags = Object.freeze([
             'a',
             'mark',
             'code'
-        ],
+        ]),
 
-        ignoredTags = [
+        ignoredTags = Object.freeze([
             'ul',
             'ol',
             'table',
@@ -37,16 +36,16 @@ RTEExt.rte.Utils = (function(CUI){
             'thead',
             'tfoot',
             'tr'
-        ],
+        ]),
 
-        contentTags = [
+        contentTags = Object.freeze([
             'br',
             'embed',
             'hr',
             'img',
             'input',
             'wbr'
-        ];
+        ]);
 
     /**
      * Gets the computed style of the current selection.  If a tagName is provided in the criteria, the closest parent
@@ -56,10 +55,8 @@ RTEExt.rte.Utils = (function(CUI){
      * start and end styles match, that style will be returned.
      */
     function getComputedStyle(selectionDef, criteria, rootNode){
-        var startNode = selectionDef.startNode,
-            endNode = selectionDef.endNode,
-            startStyle,
-            endStyle;
+        let startNode = selectionDef.startNode,
+            endNode = selectionDef.endNode;
 
         //if we were provided a specific tag name to look for, move our start/end nodes to that position
         if(criteria.tagName && criteria.tagName !== '*'){
@@ -86,8 +83,8 @@ RTEExt.rte.Utils = (function(CUI){
         }
 
         //get computed styles
-        startStyle = startNode ? window.getComputedStyle(startNode, null).getPropertyValue(criteria.style) : '';
-        endStyle = endNode ? window.getComputedStyle(endNode, null).getPropertyValue(criteria.style) : '';
+        const startStyle = startNode ? window.getComputedStyle(startNode, null).getPropertyValue(criteria.style) : '';
+        const endStyle = endNode ? window.getComputedStyle(endNode, null).getPropertyValue(criteria.style) : '';
 
         //return proper computed style
         return !selectionDef.endNode || startStyle === endStyle ? startStyle : '';
@@ -97,7 +94,7 @@ RTEExt.rte.Utils = (function(CUI){
      * Unwraps the provided node by moving all children to its parent and finally removing the provided node.
      */
     function unwrap(node){
-        var parentNode = node.parentNode;
+        const parentNode = node.parentNode;
 
         while(node.firstChild){
             parentNode.insertBefore(node.firstChild, node);
@@ -142,11 +139,10 @@ RTEExt.rte.Utils = (function(CUI){
      * Gets all ancestor nodes from the provided node to the provided root.
      */
     function getAncestors(node, rootNode){
-        var ancestors = [],
-            curNode;
+        const ancestors = [];
 
         if(node && node !== rootNode){
-            curNode = node.parentNode;
+            let curNode = node.parentNode;
             while(curNode !== rootNode){
                 ancestors.push(curNode);
                 curNode = curNode.parentNode;
@@ -163,9 +159,9 @@ RTEExt.rte.Utils = (function(CUI){
      * provided, it will be used to consider which ancestors may be compared otherwise all ancestors will be compared.
      */
     function getCommonAncestor(node1, node2, root, validAncestor){
-        var node1Ancestors = getAncestors(node1, root),
-            node2Ancestors = getAncestors(node2, root),
-            commonAncestor = null,
+        const node1Ancestors = getAncestors(node1, root),
+            node2Ancestors = getAncestors(node2, root);
+        let commonAncestor = null,
             node1Index = 0,
             node2Index = 0;
 
@@ -192,13 +188,10 @@ RTEExt.rte.Utils = (function(CUI){
      * tagName, copying all attributes and children from the original and replacing the original.
      */
     function convertTagName(node, tagName){
-        var newNode,
-            i;
-
         if(node.tagName && tagName && node.tagName.toLowerCase() !== tagName){
             //convert tag
-            newNode = document.createElement(tagName);
-            for(i = 0; i < node.attributes.length; i++){
+            const newNode = node.ownerDocument.createElement(tagName);
+            for(let i = 0; i < node.attributes.length; i++){
                 newNode.setAttribute(node.attributes[i].name, node.attributes[i].value);
             }
             while(node.firstChild){
@@ -208,7 +201,7 @@ RTEExt.rte.Utils = (function(CUI){
             node.parentNode.removeChild(node);
 
             return newNode;
-        }else{
+        } else {
             return node;
         }
     }
@@ -217,16 +210,15 @@ RTEExt.rte.Utils = (function(CUI){
      * Clones the provided node by creating a new node of the same type and copying attributes and/or text.
      */
     function cloneNode(node){
-        var newNode = null,
-            i;
+        let newNode = null;
 
         if(node.nodeType === 1){
-            newNode = document.createElement(node.tagName);
-            for(i = 0; i < node.attributes.length; i++){
+            newNode = node.ownerDocument.createElement(node.tagName);
+            for(let i = 0; i < node.attributes.length; i++){
                 newNode.setAttribute(node.attributes[i].name, node.attributes[i].value);
             }
         } else if(node.nodeType === 3){
-            newNode = document.createTextNode(node.textContent);
+            newNode = node.ownerDocument.createTextNode(node.textContent);
         }
 
         return newNode;
@@ -236,15 +228,16 @@ RTEExt.rte.Utils = (function(CUI){
      * Splits a text node into 3 possible parts depending on the startOffset and endOffset provided.
      */
     function splitTextNode(textNode, startOffset, endOffset){
-        var splitNodes = {
+        const splitNodes = {
             beginning: null,
             middle: null,
             end: null
-        },
-        normalizedStartOffset,
-        normalizedEndOffset;
+        };
 
         if(textNode && textNode.nodeType === 3){
+            let normalizedStartOffset,
+                normalizedEndOffset;
+
             //verify startOffset
             if(startOffset > textNode.textContent.length){
                 //max startOffset can be text length
@@ -273,19 +266,19 @@ RTEExt.rte.Utils = (function(CUI){
 
             if(normalizedStartOffset > 0){
                 //we need to do a beginning split up to start offset.
-                splitNodes.beginning = document.createTextNode(
+                splitNodes.beginning = textNode.ownerDocument.createTextNode(
                     textNode.textContent.substring(0, normalizedStartOffset)
                 );
             }
             if(normalizedEndOffset > normalizedStartOffset){
                 //we need to do a middle split from start offset to end offset
-                splitNodes.middle = document.createTextNode(
+                splitNodes.middle = textNode.ownerDocument.createTextNode(
                     textNode.textContent.substring(normalizedStartOffset, normalizedEndOffset)
                 );
             }
             if(normalizedEndOffset < textNode.textContent.length){
                 //we need to  do an end split from end offset to remaining text
-                splitNodes.end = document.createTextNode(
+                splitNodes.end = textNode.ownerDocument.createTextNode(
                     textNode.textContent.substring(normalizedEndOffset, textNode.textContent.length)
                 );
             }
@@ -298,10 +291,7 @@ RTEExt.rte.Utils = (function(CUI){
      * Determines if two elements are similar.
      */
     function similarElements(element1, element2){
-        var equal = false,
-            element2Attributes = {},
-            element2ClassNames = {},
-            i;
+        let equal = false;
 
         //only compare elements.
         if(element1.nodeType === 1 && element2.nodeType === 1){
@@ -319,26 +309,28 @@ RTEExt.rte.Utils = (function(CUI){
 
             //compare specific attributes
             if(equal){
-                for(i = 0; i < element2.attributes.length; i++){
+                const element2Attributes = {};
+                for(let i = 0; i < element2.attributes.length; i++){
                     element2Attributes[element2.attributes[i].name] = element2.attributes[i].value;
                 }
-                for(i = 0; i < element1.attributes.length && equal; i++){
+                for(let i = 0; i < element1.attributes.length && equal; i++){
                     equal = element2Attributes.hasOwnProperty(element1.attributes[i].name)
                         && element1.attributes[i].value === element2Attributes[element1.attributes[i].name];
                 }
             }
 
             //compare specific styles
-            for(i = 0; i < element1.style.length && equal; i++){
+            for(let i = 0; i < element1.style.length && equal; i++){
                 equal = element1.style[element1.style[i]] === element2.style[element1.style[i]];
             }
 
             //compare specific classes
             if(equal){
-                for(i = 0; i < element2.classList.length; i++){
+                const element2ClassNames = {};
+                for(let i = 0; i < element2.classList.length; i++){
                     element2ClassNames[element2.classList[i]] = true;
                 }
-                for(i = 0; i < element1.classList.length && equal; i++){
+                for(let i = 0; i < element1.classList.length && equal; i++){
                     equal = element2ClassNames.hasOwnProperty(element1.classList[i]);
                 }
             }
@@ -354,9 +346,7 @@ RTEExt.rte.Utils = (function(CUI){
      * sibling elements will not be merged.
      */
     function normalize(node, mergeable){
-        var curNode = node.firstChild,
-            nextNode,
-            tempNode;
+        let curNode = node.firstChild;
 
         //normalize non container nodes.
         while(curNode){
@@ -374,7 +364,7 @@ RTEExt.rte.Utils = (function(CUI){
             }
 
             //move to next node, first try to move down and then across.  don't go beyond root node
-            nextNode = curNode.firstChild;
+            let nextNode = curNode.firstChild;
             while(!nextNode && curNode !== node){
                 //move across
                 nextNode = curNode.nextSibling;
@@ -417,7 +407,7 @@ RTEExt.rte.Utils = (function(CUI){
      * Determines if a node is considered content.
      */
     function isContentNode(node){
-        var isContent = node.nodeType === 3;
+        let isContent = node.nodeType === 3;
 
         //check "content tags".
         isContent = isContent || (node.tagName
