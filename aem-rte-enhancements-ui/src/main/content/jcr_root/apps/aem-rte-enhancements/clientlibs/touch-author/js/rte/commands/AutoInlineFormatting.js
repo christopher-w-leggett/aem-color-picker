@@ -6,6 +6,8 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
     const COMMAND_NAME = 'inline';
 
+    //TODO: Character formatting.
+    //TODO:  - (c) --> &copy;, 7/8 --> formatted percent, etc.
     RTEExt.rte.commands.AutoInlineFormatting = new Class({
         toString: 'AutoInlineFormatting',
 

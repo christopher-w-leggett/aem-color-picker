@@ -22,12 +22,19 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
 
         execute: function(execDef){
             const root = execDef.editContext.root,
-                defaultEditBlockTag = execDef.component.htmlRules.blockHandling.defaultEditBlockType;
+                policies = execDef.value || {},
+                defaultEditBlockTagName = execDef.component.htmlRules.blockHandling.defaultEditBlockType;
 
-            this.enforceSubtree(root, root, execDef.value || {}, defaultEditBlockTag);
+            this.enforceSubtree(root, policies, {
+                root: execDef.editContext.root,
+                defaultTagName: defaultEditBlockTagName
+            }, {
+                editContext: execDef.editContext,
+                bookmark: execDef.bookmark
+            });
         },
 
-        enforceSubtree: function(node, root, policies, defaultEditBlockTag){
+        enforceSubtree: function(node, policies, elementSettings, textNodeSettings){
             let curChild = node.firstChild;
 
             while(curChild){
@@ -35,12 +42,16 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
                 const markerNode = curChild.previousSibling || node;
 
                 //enforce current child (if child is removed, null is returned)
-                curChild = this.enforce(curChild, root, policies, defaultEditBlockTag);
+                if(curChild.nodeType === 1){
+                    curChild = this.enforceElement(curChild, policies, elementSettings);
+                } else if(curChild.nodeType === 3){
+                    curChild = this.enforceTextNode(curChild, policies, textNodeSettings);
+                }
 
                 //continue processing subtree
                 if(curChild){
                     //current child was not stripped so continue down tree.
-                    this.enforceSubtree(curChild, root, policies, defaultEditBlockTag);
+                    this.enforceSubtree(curChild, policies, elementSettings, textNodeSettings);
                     curChild = curChild.nextSibling;
                 }else{
                     //current child was stripped out, so just move to next sibling using marker node.
@@ -49,73 +60,121 @@ RTEExt.rte.commands = RTEExt.rte.commands || {};
             }
         },
 
-        enforce: function(node, root, policies, defaultEditBlockTag){
+        enforceElement: function(node, policies, elementSettings){
             let enforcedNode = node;
 
-            if(enforcedNode.nodeType && enforcedNode.nodeType === 1){
-                //enforce tag
-                const activePolicy = this.getActivePolicy(enforcedNode, policies);
-                if(activePolicy.policy !== 'allow'){
-                    if(enforcedNode.parentNode === root){
-                        //don't put text directly under root.
-                        enforcedNode = RTEExt.rte.Utils.convertTagName(enforcedNode, defaultEditBlockTag);
-                    }else{
-                        RTEExt.rte.Utils.unwrap(enforcedNode);
-                        enforcedNode = null;
+            //enforce tag
+            const activePolicy = this.getActivePolicy(enforcedNode, policies);
+            if(activePolicy.policy !== 'allow'){
+                if(enforcedNode.parentNode === elementSettings.root){
+                    //don't put text directly under root.
+                    enforcedNode = RTEExt.rte.Utils.convertTagName(enforcedNode, elementSettings.defaultTagName);
+                }else{
+                    RTEExt.rte.Utils.unwrap(enforcedNode);
+                    enforcedNode = null;
+                }
+            }
+
+            if(enforcedNode){
+                //enforce styles
+                for(let i = enforcedNode.style.length - 1; i >= 0; i--){
+                    const stylePolicy = this.getStylePolicy(enforcedNode.style[i], activePolicy);
+                    if(stylePolicy.values && stylePolicy.values.length){
+                        if(stylePolicy.policy === 'allow' && !stylePolicy.values.includes(enforcedNode.style[enforcedNode.style[i]])){
+                            enforcedNode.style.removeProperty(enforcedNode.style[i]);
+                        } else if(stylePolicy.policy !== 'allow' && stylePolicy.values.includes(enforcedNode.style[enforcedNode.style[i]])){
+                            enforcedNode.style.removeProperty(enforcedNode.style[i]);
+                        }
+                    } else if(stylePolicy.policy !== 'allow'){
+                        enforcedNode.style.removeProperty(enforcedNode.style[i]);
                     }
                 }
 
-                if(enforcedNode){
-                    //enforce styles
-                    for(let i = enforcedNode.style.length - 1; i >= 0; i--){
-                        const stylePolicy = this.getStylePolicy(enforcedNode.style[i], activePolicy);
-                        if(stylePolicy.values && stylePolicy.values.length){
-                            if(stylePolicy.policy === 'allow' && !stylePolicy.values.includes(enforcedNode.style[enforcedNode.style[i]])){
-                                enforcedNode.style.removeProperty(enforcedNode.style[i]);
-                            } else if(stylePolicy.policy !== 'allow' && stylePolicy.values.includes(enforcedNode.style[enforcedNode.style[i]])){
-                                enforcedNode.style.removeProperty(enforcedNode.style[i]);
+                //enforce attributes
+                for(let i = enforcedNode.attributes.length - 1; i >= 0; i--){
+                    const attributeName = enforcedNode.attributes[i].nodeName;
+                    if(attributeName !== 'style' && !attributeName.startsWith('_rte')){
+                        const attributePolicy = this.getAttributePolicy(attributeName, activePolicy);
+                        if(attributePolicy.values && attributePolicy.values.length){
+                            const attributeValues = attributePolicy.split
+                                ? enforcedNode.attributes[i].value.split(attributePolicy.split)
+                                : [enforcedNode.attributes[i].value]
+                            if(attributePolicy.policy === 'allow'){
+                                for(let j = attributeValues.length - 1; j >= 0; j--){
+                                    if(!attributePolicy.values.includes(attributeValues[j])){
+                                        attributeValues.splice(attributeValues.indexOf(attributeValues[j]), 1);
+                                    }
+                                }
+                            } else {
+                                for(let j = attributeValues.length - 1; j >= 0; j--){
+                                    if(attributePolicy.values.includes(attributeValues[j])){
+                                        attributeValues.splice(attributeValues.indexOf(attributeValues[j]), 1);
+                                    }
+                                }
                             }
-                        } else if(stylePolicy.policy !== 'allow'){
-                            enforcedNode.style.removeProperty(enforcedNode.style[i]);
-                        }
-                    }
 
-                    //enforce attributes
-                    for(let i = enforcedNode.attributes.length - 1; i >= 0; i--){
-                        const attributeName = enforcedNode.attributes[i].nodeName;
-                        if(attributeName !== 'style' && !attributeName.startsWith('_rte')){
-                            const attributePolicy = this.getAttributePolicy(attributeName, activePolicy);
-                            if(attributePolicy.values && attributePolicy.values.length){
-                                const attributeValues = attributePolicy.split
-                                    ? enforcedNode.attributes[i].value.split(attributePolicy.split)
-                                    : [enforcedNode.attributes[i].value]
-                                if(attributePolicy.policy === 'allow'){
-                                    for(let j = attributeValues.length - 1; j >= 0; j--){
-                                        if(!attributePolicy.values.includes(attributeValues[j])){
-                                            attributeValues.splice(attributeValues.indexOf(attributeValues[j]), 1);
-                                        }
-                                    }
-                                } else {
-                                    for(let j = attributeValues.length - 1; j >= 0; j--){
-                                        if(attributePolicy.values.includes(attributeValues[j])){
-                                            attributeValues.splice(attributeValues.indexOf(attributeValues[j]), 1);
-                                        }
-                                    }
-                                }
-
-                                if(attributeValues.length){
-                                    enforcedNode.attributes[i].value = attributePolicy.split
-                                        ? attributeValues.join(attributePolicy.split)
-                                        : attributeValues[0];
-                                } else {
-                                    enforcedNode.removeAttribute(attributeName);
-                                }
-                            } else if(attributePolicy.policy !== 'allow'){
+                            if(attributeValues.length){
+                                enforcedNode.attributes[i].value = attributePolicy.split
+                                    ? attributeValues.join(attributePolicy.split)
+                                    : attributeValues[0];
+                            } else {
                                 enforcedNode.removeAttribute(attributeName);
                             }
-                        } else if(attributeName === 'style' && enforcedNode.attributes[i].value === ''){
-                            //strip empty style
+                        } else if(attributePolicy.policy !== 'allow'){
                             enforcedNode.removeAttribute(attributeName);
+                        }
+                    } else if(attributeName === 'style' && enforcedNode.attributes[i].value === ''){
+                        //strip empty style
+                        enforcedNode.removeAttribute(attributeName);
+                    }
+                }
+            }
+
+            return enforcedNode;
+        },
+
+        enforceTextNode: function(node, policies, textNodeSettings){
+            const characterPolicies = policies.characterPolicies || [];
+            let enforcedNode = node,
+                processedText = enforcedNode.textContent;
+
+            for(let i = 0; i < characterPolicies.length; i++){
+                let policy = characterPolicies[i];
+                if(policy.match){
+                    let lastMatchIndex = processedText.indexOf(policy.match);
+                    while(lastMatchIndex > -1){
+                        processedText = processedText.replace(policy.match, policy.replacement);
+                        lastMatchIndex = processedText.indexOf(policy.match);
+                    }
+                }
+            }
+
+            if(processedText !== enforcedNode.textContent){
+                //adjust bookmark
+                textNodeSettings.bookmark.startPos += processedText.length - enforcedNode.textContent.length;
+
+                //adjust text content
+                if(processedText){
+                    //handle scenario where processed text ends with space
+                    if(processedText.endsWith(' ')){
+                        processedText = processedText.substring(0, processedText.length - 1)
+                            + CUI.rte.DomProcessor.NBSP;
+                    }
+
+                    enforcedNode.textContent = processedText;
+                } else {
+                    //remove node
+                    let parentNode = enforcedNode.parentNode;
+                    parentNode.removeChild(enforcedNode);
+                    enforcedNode = null;
+
+                    //if parent no longer contains children, create placeholder node
+                    if(!parentNode.firstChild){
+                        const emptyPlaceholderNode = CUI.rte.DomProcessor.createEmptyLinePlaceholder(
+                            textNodeSettings.editContext, false
+                        );
+                        if(emptyPlaceholderNode){
+                            enforcedNode = parentNode.appendChild(emptyPlaceholderNode);
                         }
                     }
                 }

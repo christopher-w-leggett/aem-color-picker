@@ -316,12 +316,19 @@ The `markup` feature will restrict what markup is allowed within the RTE.  This 
             'split': '<split-string>',
             'values': ['<value>',...]
         }
+    },
+    'characterPolicies': {
+        '<name>': {
+            'match': '<string>',
+            'replacement': '<string>'
+        }
     }
 }
 ```
 
 #### Example
-The following configuration enables and modifies the `enforcer#markup` configuration so that `div` tags are not allowed.
+The following configuration enables and modifies the `enforcer#markup` configuration so that `div` tags are not allowed
+and converts word smart quotes to straight quotes.
 
 ```
 rtePlugins
@@ -332,5 +339,12 @@ rtePlugins
  |    |    +-- {nt:unstructured} tagPolicies
  |    |    |    +-- {nt:unstructured} div
  |    |    |    |    +-- {String} policy="deny"
+ |    |    +-- {nt:unstructured} characterPolicies
+ |    |    |    +-- {nt:unstructured} smartquote-left
+ |    |    |    |    +-- {String} match="“"
+ |    |    |    |    +-- {String} replacement="""
+ |    |    |    +-- {nt:unstructured} smartquote-right
+ |    |    |    |    +-- {String} match="”"
+ |    |    |    |    +-- {String} replacement="""
  +-- ...
 ```

@@ -21,45 +21,51 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             return [RTEExt.rte.commands.EnforceMarkup.COMMAND_NAME];
         },
 
+        /**
+          * Config Details:
+          *     1. If tag/style/attribute is not specifically allowed, it will be denied.
+          *     2. A wildcard of '+' may be used as the name for any policy.  Only 1 is allowed per policy group and
+          *        would mostly be used to reverse the whitelist to a blacklist.  A wildcard policy within the
+          *        tagPolicies group may not contain any child policies (stylePolicies, attributePolicies).
+          *     3. Missing or empty values array within a styles or attribute policy will indicate that all values are
+          *        allowed or denied depending on the policy property.
+          *
+          * Example Configuration:
+          * {
+          *     'tagPolicies': {
+          *         '<tag> | +': {
+          *             'policy': 'allow | deny',
+          *             'stylePolicies': {
+          *                 ...
+          *             },
+          *             'attributePolicies': {
+          *                 ...
+          *             }
+          *         }
+          *     },
+          *     'stylePolicies': {
+          *         '<style>': {
+          *             'policy': 'allow | deny',
+          *             'values': ['<value>']
+          *         }
+          *     },
+          *     'attributePolicies': {
+          *         '<attribute>': {
+          *             'policy': 'allow | deny',
+          *             'split': '<split-string>',
+          *             'values': ['<value>']
+          *         }
+          *     },
+          *     'characterPolicies': {
+          *         '<name>': {
+          *             'match': '<string>',
+          *             'replacement': '<string>'
+          *         }
+          *     }
+          * }
+          * TODO: Need to finish reviewing table plugin which is broken in 6.4.  Need to see if it works in 6.3
+          */
         notifyConfig: function(config){
-            /*
-            Config Details:
-                1. If tag/style/attribute is not specifically allowed, it will be denied.
-                2. A wildcard of '+' may be used as the name for any policy.  Only 1 is allowed per policy group and
-                   would mostly be used to reverse the whitelist to a blacklist.  A wildcard policy within the
-                   tagPolicies group may not contain any child policies (stylePolicies, attributePolicies).
-                3. Missing or empty values array within a styles or attribute policy will indicate that all values are
-                   allowed or denied depending on the policy property.
-
-            Example Configuration:
-            {
-                'tagPolicies': {
-                    '<tag> | +': {
-                        'policy': 'allow | deny',
-                        'stylePolicies': {
-                            ...
-                        },
-                        'attributePolicies': {
-                            ...
-                        }
-                    }
-                },
-                'stylePolicies': {
-                    '<style>': {
-                        'policy': 'allow | deny',
-                        'values': ['<value>']
-                    }
-                },
-                'attributePolicies': {
-                    '<attribute>': {
-                        'policy': 'allow | deny',
-                        'split': '<split-string>',
-                        'values': ['<value>']
-                    }
-                }
-            }
-            TODO: Need to finish reviewing table plugin which is broken in 6.4.  Need to see if it works in 6.3
-            */
             const defaultConfig = {
                 'tagPolicies': {
                     'p': {
@@ -348,6 +354,12 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             };
             CUI.rte.Utils.applyDefaults(config, defaultConfig);
             this.config = config;
+
+            //convert character policies to array
+            this.config.characterPolicies = Object.values(this.config.characterPolicies || {});
+            this.config.characterPolicies.sort(function(a, b){
+                return b.match - a.match;
+            });
         },
 
         updateState: function(selDef){
