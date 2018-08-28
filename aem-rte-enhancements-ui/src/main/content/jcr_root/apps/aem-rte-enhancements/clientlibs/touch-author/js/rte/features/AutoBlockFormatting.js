@@ -24,7 +24,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
         notifyConfig: function(config){
             //set config
             const defaultConfig = {
-                blockElementMapping: {
+                elementMapping: {
                     unorderedList: {
                         charPattern: ['*', '-'],
                         nodeTree: ['ul', 'li']
@@ -86,14 +86,14 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             //see if we are applying formatting
             if(this._activationKey === key && this._canCreateBlockFormatting(cursorNode, root)){
                 //find element mapping from our configuration
-                const elementMappingName = Object.keys(this.config.blockElementMapping).find(function(prop){
-                        return this.config.blockElementMapping.hasOwnProperty(prop)
-                            && !this.config.blockElementMapping[prop].disabled
-                            && this.config.blockElementMapping[prop].charPattern.includes(
+                const elementMappingName = Object.keys(this.config.elementMapping).find(function(prop){
+                        return this.config.elementMapping.hasOwnProperty(prop)
+                            && !this.config.elementMapping[prop].disabled
+                            && this.config.elementMapping[prop].charPattern.includes(
                                 cursorNode.textContent.substring(0, cursorNode.textContent.length - 1)
                             );
                     }.bind(this)),
-                    elementMapping = elementMappingName ? this.config.blockElementMapping[elementMappingName] : null;
+                    elementMapping = elementMappingName ? this.config.elementMapping[elementMappingName] : null;
 
                 //modify top level block if we found a mapping
                 if(elementMapping){
@@ -105,15 +105,15 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             } else if('Enter' === key && this._canRemoveBlockFormatting(cursorNode, root)){
                 //see if we should remove current formatting
                 //find element mapping from our configuration
-                const elementMappingName = Object.keys(this.config.blockElementMapping).find(function(prop){
+                const elementMappingName = Object.keys(this.config.elementMapping).find(function(prop){
                         let match = true;
 
-                        if(this.config.blockElementMapping.hasOwnProperty(prop)
-                            && !this.config.blockElementMapping[prop].disabled){
+                        if(this.config.elementMapping.hasOwnProperty(prop)
+                            && !this.config.elementMapping[prop].disabled){
                             let curNode = cursorNode.parentNode;
-                            for(let i = this.config.blockElementMapping[prop].nodeTree.length - 1; match && i >= 0; i--){
+                            for(let i = this.config.elementMapping[prop].nodeTree.length - 1; match && i >= 0; i--){
                                 match = match
-                                    && this.config.blockElementMapping[prop].nodeTree[i] === curNode.tagName.toLowerCase();
+                                    && this.config.elementMapping[prop].nodeTree[i] === curNode.tagName.toLowerCase();
                                 curNode = curNode.parentNode;
                             }
                             match = match && curNode === root;
@@ -123,7 +123,7 @@ RTEExt.rte.features = RTEExt.rte.features || {};
 
                         return match;
                     }.bind(this)),
-                    elementMapping = elementMappingName ? this.config.blockElementMapping[elementMappingName] : null;
+                    elementMapping = elementMappingName ? this.config.elementMapping[elementMappingName] : null;
 
                 //modify top level block if we found a mapping
                 if(elementMapping){

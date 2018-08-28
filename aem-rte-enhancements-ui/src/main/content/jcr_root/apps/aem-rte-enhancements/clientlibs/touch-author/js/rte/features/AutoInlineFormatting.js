@@ -24,9 +24,19 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             return [RTEExt.rte.commands.AutoInlineFormatting.COMMAND_NAME];
         },
 
+        /**
+         * {
+         *     'characterMapping': {
+         *         '<name>': {
+         *             'match': '<string>',
+         *             'replacement': '<string>'
+         *         }
+         *     }
+         * }
+         */
         notifyConfig: function(config){
             const defaultConfig = {
-                    inlineElementMapping: {
+                    elementMapping: {
                         bold: {
                             charPattern: ['**', '__'],
                             tagName: 'b'
@@ -51,17 +61,17 @@ RTEExt.rte.features = RTEExt.rte.features || {};
             //initialize properties
             this._activationKeys = {};
             this._formatting = [];
-            for(let prop in this.config.inlineElementMapping){
-                if(this.config.inlineElementMapping.hasOwnProperty(prop)
-                    && !this.config.inlineElementMapping[prop].disabled){
-                    this.config.inlineElementMapping[prop].charPattern.forEach(function(pattern){
+            for(let prop in this.config.elementMapping){
+                if(this.config.elementMapping.hasOwnProperty(prop)
+                    && !this.config.elementMapping[prop].disabled){
+                    this.config.elementMapping[prop].charPattern.forEach(function(pattern){
                         //add activation key
                         this._activationKeys[pattern[pattern.length - 1]] = true;
 
                         //track formatting option
                         this._formatting.push({
                             charPattern: pattern,
-                            tagName: this.config.inlineElementMapping[prop].tagName
+                            tagName: this.config.elementMapping[prop].tagName
                         });
                     }.bind(this));
                 }

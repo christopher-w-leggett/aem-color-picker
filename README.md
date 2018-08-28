@@ -138,7 +138,7 @@ The following example is provided to outline all configuration options available
      +-- {nt:unstructured} auto
      |    +-- {String[]} features="[inline,block]"
      |    +-- {nt:unstructured} inline
-     |    |    +-- {nt:unstructured} inlineElementMapping
+     |    |    +-- {nt:unstructured} elementMapping
      |    |    |    +-- {nt:unstructured} bold
      |    |    |    |    +-- {String[]} charPattern="[**,__]"
      |    |    |    |    +-- {String} tagName="b"
@@ -152,7 +152,7 @@ The following example is provided to outline all configuration options available
      |    |    |    |    +-- {String} tagName="code"
      |    |    |    |    +-- {Boolean} disabled="false"
      |    +-- {nt:unstructured} block
-     |    |    +-- {nt:unstructured} blockElementMapping
+     |    |    +-- {nt:unstructured} elementMapping
      |    |    |    +-- {nt:unstructured} unorderedList
      |    |    |    |    +-- {String[]} charPattern="[*,-]"
      |    |    |    |    +-- {String[]} nodeTree="[ul,li]"
